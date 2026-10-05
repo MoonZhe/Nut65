@@ -1,0 +1,13 @@
+// Copyright 2026
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#pragma once
+
+// The board reserves the user EEPROM datablock for RGB-record data and its own
+// settings (keyboards/leku/nut65/config.h). Grow it by two bytes for the
+// keymap's own settings: flags (Snap Tap, Knight Rider variant) and Knight Rider speed. The board's eeconfig_init_user_datablock()
+// only writes the RGB-record part, so these bytes are ours alone.
+#undef EECONFIG_USER_DATA_SIZE
+#define EECONFIG_USER_DATA_SIZE (EECONFIG_RGBREC_USE_SIZE + EECONFIG_CONFINFO_USE_SIZE + 2)
+#define USER_FLAGS_EEPROM_ADDR ((uint8_t *)(EECONFIG_USER_DATABLOCK) + EECONFIG_RGBREC_USE_SIZE + EECONFIG_CONFINFO_USE_SIZE)
+#define USER_KITT_SPEED_EEPROM_ADDR (USER_FLAGS_EEPROM_ADDR + 1)
