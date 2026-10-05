@@ -1,0 +1,23 @@
+diff --git a/keyboards/leku/nut65/nut65.c b/keyboards/leku/nut65/nut65.c
+index c664fb4a..0684a6a1 100644
+--- a/keyboards/leku/nut65/nut65.c
++++ b/keyboards/leku/nut65/nut65.c
+@@ -1708,7 +1708,8 @@ bool rgb_matrix_indicators_advanced_kb(uint8_t led_min, uint8_t led_max) {
+         }
+     }
+ 
+-    return true;
++    // Let the keymap paint last (standard QMK kb -> user hook chain).
++    return rgb_matrix_indicators_advanced_user(led_min, led_max);
+ }
+ 
+ uint8_t hs_rgb_buff_index[(RGB_MATRIX_LED_COUNT - RGBLED_NUM)] = {
+@@ -1849,3 +1850,8 @@ void hs_rgb_blink_hook_user(void) {
+         }
+     }    
+ }
++
++// Read-only accessors for keymaps (Snap Tap / Knight Rider keymap).
++uint8_t nut65_rl_mode(void) { return confinfo.rgb_light_mode; }
++uint8_t nut65_rl_brightness(void) { return rl_rgb_brightness_val + confinfo.rl_val * 5; }
++bool nut65_rl_music(void) { return confinfo.hs_music_cut; }
