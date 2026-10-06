@@ -9,7 +9,9 @@
 //   - 2008-style KITT scanner on the light bar, in six colours, as part of
 //     the Fn+Insert light-bar cycle (after white): light floods in from both
 //     ends, drains into the middle, floods back out and drains to the ends.
-//     Fn+, / Fn+. = slower / faster.
+//     Fn+, / Fn+. = slower / faster. Plays one fast cycle at power-on.
+//   - Fn+Left Win: game mode. Left Win acts as Fn and Right Alt as Win, Snap
+//     Tap turns on, and the Left Win key glows red.
 
 #include QMK_KEYBOARD_H
 #include "rgb_record/rgb_record.h"
@@ -18,6 +20,7 @@
 #define SNAP_TOG QK_KB_30 // VIA CUSTOM(30)
 #define KITT_SLOW QK_KB_31         // VIA CUSTOM(31)
 #define KITT_FAST (QK_KB_31 + 1)  // VIA CUSTOM(32)
+#define GAME_TOG  (QK_KB_31 + 2)  // VIA CUSTOM(33)
 
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -239,8 +242,8 @@ static int32_t kitt_soft(int32_t v) {
     return v < 0 ? 0 : v > 255 ? 255 : v;
 }
 
-static void kitt_render(void) {
-    const int32_t pct = kitt_speed_pct[kitt_speed];
+// Paints the scanner `elapsed_ms` into its cycle and returns the cycle length.
+static int32_t kitt_render(uint8_t hue, int32_t pct, uint32_t elapsed_ms) {
     const int32_t fl  = KITT_FLOOD_MS * pct / 100;
     const int32_t dr  = KITT_DRAIN_MS * pct / 100;
     const int32_t gap = KITT_TRANSITION_MS * pct / 100;
@@ -251,13 +254,12 @@ static void kitt_render(void) {
     const int32_t s_lo_out = s_lo_in + dr + gap;
     const int32_t s_hi_out = s_lo_out + fl + gap;
     const int32_t period   = s_hi_out + dr + gap;
-    const int32_t t        = timer_elapsed32(kitt_timer) % period;
+    const int32_t t        = elapsed_ms % period;
 
     // The previous cycle's hi-out can still be finishing when hi-in starts.
     const int32_t hi = KITT_TRAVEL - kitt_move(t + period, s_hi_out, dr) + kitt_move(t, s_hi_in, fl) - kitt_move(t, s_hi_out, dr);
     const int32_t lo = -KITT_SOFT * 256 + kitt_move(t, s_lo_in, dr) - kitt_move(t, s_lo_out, fl);
 
-    const uint8_t  hue  = kitt_hues[kitt_mode - 1];
     const uint8_t  tick = timer_read32() / 20;
     const uint16_t peak = nut65_rl_brightness();
     for (uint8_t d = 0; d < KITT_HALF; d++) {
@@ -274,6 +276,94 @@ static void kitt_render(void) {
             rgb_matrix_set_color(KITT_LED_FIRST + led, rgb.r, rgb.g, rgb.b);
         }
     }
+    return period;
+}
+
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Boot animation: one KITT cycle at the fastest speed when the keyboard starts.
+
+static bool     boot_anim_active = false;
+static uint32_t boot_anim_timer;
+
+static void boot_anim_render(void) {
+    const uint8_t hue    = kitt_mode ? kitt_hues[kitt_mode - 1] : 0;
+    const int32_t period = kitt_render(hue, kitt_speed_pct[KITT_SPEEDS - 1], timer_elapsed32(boot_anim_timer));
+    if (timer_elapsed32(boot_anim_timer) >= (uint32_t)period) {
+        boot_anim_active = false;
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Game mode: Left Win acts as Fn and Right Alt as Win, Snap Tap turns on
+// (restored on exit), and the Left Win key glows red. Saved in its own byte
+// with a 0xB0 marker: bit 0 = game mode, bit 1 = Snap Tap before game mode.
+
+#define USER_MODES_MARKER     0xB0
+#define USER_MODE_GAME        0x01
+#define USER_MODE_SNAP_BEFORE 0x02
+#define LED_INDEX_LGUI        8
+
+static bool    game_mode        = false;
+static bool    game_snap_before = false;
+static uint8_t game_fn_layer    = 0; // Fn layer Left Win switched on, 0 = none.
+static bool    game_ralt_as_gui = false;
+
+static void user_modes_save(void) {
+    uint8_t modes = USER_MODES_MARKER;
+    if (game_mode) modes |= USER_MODE_GAME;
+    if (game_snap_before) modes |= USER_MODE_SNAP_BEFORE;
+    eeprom_update_byte(USER_MODES_EEPROM_ADDR, modes);
+}
+
+static void game_mode_set(bool on) {
+    if (on == game_mode) return;
+    if (on) {
+        game_snap_before = snaptap_enabled;
+        snaptap_enabled  = true;
+    } else {
+        snaptap_enabled = game_snap_before;
+    }
+    game_mode = on;
+    user_flags_save();
+    user_modes_save();
+}
+
+// The Fn layer that goes with the current base layer (Windows 0 -> 1, Mac 2 -> 3).
+static uint8_t game_fn_layer_for_base(void) {
+    return get_highest_layer(default_layer_state) == 2 ? 3 : 1;
+}
+
+// Returns false when the event was handled here.
+static bool game_mode_process(uint16_t keycode, keyrecord_t *record) {
+    switch (keycode) {
+        case KC_LGUI:
+            if (record->event.pressed && game_mode) {
+                game_fn_layer = game_fn_layer_for_base();
+                layer_on(game_fn_layer);
+                return false;
+            }
+            if (!record->event.pressed && game_fn_layer) {
+                layer_off(game_fn_layer);
+                game_fn_layer = 0;
+                return false;
+            }
+            break;
+        case KC_RALT:
+            if (record->event.pressed && game_mode) {
+                register_code(KC_RGUI);
+                game_ralt_as_gui = true;
+                return false;
+            }
+            if (!record->event.pressed && game_ralt_as_gui) {
+                unregister_code(KC_RGUI);
+                game_ralt_as_gui = false;
+                return false;
+            }
+            break;
+    }
+    return true;
 }
 
 // ---------------------------------------------------------------------------
@@ -287,6 +377,13 @@ void keyboard_post_init_user(void) {
     }
     uint8_t speed = eeprom_read_byte(USER_KITT_SPEED_EEPROM_ADDR);
     kitt_speed    = speed < KITT_SPEEDS ? speed : KITT_DEFAULT_SPEED;
+    uint8_t modes = eeprom_read_byte(USER_MODES_EEPROM_ADDR);
+    if ((modes & 0xF0) == USER_MODES_MARKER) {
+        game_mode        = modes & USER_MODE_GAME;
+        game_snap_before = modes & USER_MODE_SNAP_BEFORE;
+    }
+    boot_anim_active = true;
+    boot_anim_timer  = timer_read32();
 }
 
 // The board's nut65.c already owns process_record_user, so hook in one step
@@ -314,11 +411,19 @@ bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
                 speed_flash_timer = timer_read32() | 1; // Never 0, which means "not flashing".
             }
             return false;
+        case GAME_TOG:
+            if (record->event.pressed) {
+                game_mode_set(!game_mode);
+            }
+            return false;
         case RL_MOD:
             if (record->event.pressed) {
                 return kitt_process_rl_mod();
             }
             return true;
+    }
+    if (!game_mode_process(keycode, record)) {
+        return false;
     }
     for (uint8_t n = 0; n < ARRAY_SIZE(socd_pairs); n++) {
         process_socd(keycode, record, &socd_pairs[n]);
@@ -331,8 +436,13 @@ bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
 // the board's light-bar modes. Paints whole LEDs regardless of led_min/led_max;
 // the last chunk of each frame is what gets flushed.
 bool rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max) {
-    if (kitt_mode && !nut65_rl_music()) {
-        kitt_render();
+    if (boot_anim_active) {
+        boot_anim_render();
+    } else if (kitt_mode && !nut65_rl_music()) {
+        kitt_render(kitt_hues[kitt_mode - 1], kitt_speed_pct[kitt_speed], timer_elapsed32(kitt_timer));
+    }
+    if (game_mode) {
+        rgb_matrix_set_color(LED_INDEX_LGUI, 0xFF, 0x00, 0x00);
     }
     // Speed key: one white blink, or red blinks at the slowest / fastest speed.
     if (speed_flash_timer) {

@@ -1,6 +1,6 @@
 # KITT scanner + Snap Tap for the Weikav Nut65
 
-A custom QMK firmware for the **Weikav / LEKU Nut65** (65%, tri-mode) that turns the keyboard's front light bar into a **2008-style KITT scanner** (Knight Industries Three Thousand), and adds **Razer-style Snap Tap** for gaming. VIA keeps working, and wired, Bluetooth and 2.4 GHz all still work.
+A custom QMK firmware for the **Weikav / LEKU Nut65** (65%, tri-mode) that turns the keyboard's front light bar into a **2008-style KITT scanner** (Knight Industries Three Thousand), and adds **Razer-style Snap Tap** plus a one-key **game mode** for gaming. VIA keeps working, and wired, Bluetooth and 2.4 GHz all still work.
 
 ![KITT scanner on the Nut65 light bar](docs/kitt-red.gif)
 
@@ -17,6 +17,8 @@ The original 1982 KITT scanner is a single light bouncing back and forth. The 20
 
 Each phase starts 300 ms before the previous one finishes, so the movement never stops. Every moving edge has an 8-LED soft fade, and the bar is drawn per LED, so everything meets at the true centre. That matters because the board groups the bar into 15 uneven segments.
 
+It also plays once as a **boot animation** whenever the keyboard powers on, in your selected KITT colour (red if the scanner is off).
+
 It comes in **red, amber, blue, green, purple and rainbow**, with **5 speeds**:
 
 ![All six colour variants](docs/kitt-variants.gif)
@@ -29,11 +31,19 @@ It comes in **red, amber, blue, green, purple and rainbow**, with **5 speeds**:
 | **Fn + ,** / **Fn + .** | KITT slower / faster. The key blinks white for each step and red ×3 at the slowest or fastest speed. Remembered. |
 | **Fn + PgUp / PgDn** | Light-bar brightness. The scanner follows it. |
 | **Fn + G** | Snap Tap on A/D on or off. A and D flash green (on) or red (off). Remembered. |
+| **Fn + Left Win** | Game mode on or off. Left Win acts as Fn, Right Alt acts as Win, Snap Tap turns on, and the Left Win key glows red. Exit with Right Fn + Left Win. Remembered. |
 | **Fn + D** (hold 3 s) | Low-latency debounce: 1 ms (D blinks red) or 8 ms (D blinks white, the default). |
 | **Fn + Right Shift + Esc** | Bootloader (DFU), for flashing. |
 
 ### Snap Tap
 This is last-input priority on **A** and **D**: pressing D while A is held releases A, and letting go of D re-presses A if it's still held. It's the same behaviour as Razer's Snap Tap and Wooting's SOCD. Turn it off for **CS2 on Valve servers**, which kick players for hardware SOCD.
+
+### Game mode
+A single toggle for gaming, with no duplicate layers:
+- **Left Win acts as Fn**, so Win + 1 gives F1 and the Windows key can't knock you out of a game.
+- **Right Alt acts as Win** for when you do need it.
+- **Snap Tap turns on.** It goes back to its previous setting when you leave game mode, and Fn + G still toggles it inside game mode.
+- **The Left Win key glows red** while game mode is on.
 
 ## Flashing
 
@@ -47,7 +57,7 @@ This is last-input priority on **A** and **D**: pressing D while A is held relea
    wb32-dfu-updater_cli -t -s 0x08000000 -D firmware/leku_nut65_snaptap.bin
    wb32-dfu-updater_cli -R
    ```
-5. Flashing resets VIA's stored settings, so the keyboard boots into the layout compiled into the firmware. **That layout is mine** (see `nut65.layout.json`). Remap freely in VIA afterwards; load `via/NUT65_snaptap.json` under VIA's Design tab so the new keys show up as `SNAP`, `KITT-` and `KITT+`.
+5. Flashing resets VIA's stored settings, so the keyboard boots into the layout compiled into the firmware. **That layout is mine** (see `nut65.layout.json`). Remap freely in VIA afterwards; load `via/NUT65_snaptap.json` under VIA's Design tab so the new keys show up as `SNAP`, `KITT-`, `KITT+` and `GAME`. If you restore a saved VIA layout, use `via/nut65.snaptap.layout.json`; an older layout file would overwrite the new keys.
 
 ## Building from source
 
@@ -86,7 +96,7 @@ Afterwards, `python tools/render_preview.py` re-renders the GIFs above from the 
 | Path | What |
 | --- | --- |
 | `firmware/` | Ready-to-flash builds: `leku_nut65_snaptap.bin` (this firmware) and `leku_nut65_default.bin` (unmodified OEM source, the fallback) |
-| `keymap/snaptap/` | Keymap source: Snap Tap, the KITT scanner, speed keys and the layout |
+| `keymap/snaptap/` | Keymap source: Snap Tap, game mode, the KITT scanner and boot animation, speed keys and the layout |
 | `patches/` | Small board patch: lets the keymap draw over the board's light-bar modes, and adds read-only light-bar getters |
 | `via/` | VIA definition with the new keys, plus the matching layout |
 | `tools/` | Layout generator, GIF renderer, and a VIA probe that reads the live keymap |
@@ -95,7 +105,8 @@ Afterwards, `python tools/render_preview.py` re-renders the GIFs above from the 
 - The board already owns `process_record_user`, so the keymap uses `pre_process_record_user`.
 - QMK draws `rgb_matrix_indicators_user` before the board's own light-bar code, which then paints over it. The patch makes the board's `rgb_matrix_indicators_advanced_kb` end by calling `rgb_matrix_indicators_advanced_user`, so the scanner is drawn last.
 - The KITT variants slot into the stock Fn+Insert cycle between solid white and off. While a variant is showing, the board stays in its white mode underneath, so the brightness keys keep working.
-- Settings live in two bytes added to the end of the board's user EEPROM block.
+- Game mode is a flag, not a layer: in `pre_process_record_user`, Left Win switches the Fn layer on and off, and Right Alt sends Right Win.
+- Settings live in three bytes added to the end of the board's user EEPROM block.
 
 ## Credits
 - Weikav / [hangshengkeji](https://github.com/hangshengkeji/qmk_firmware) for publishing the Nut65 QMK source.
