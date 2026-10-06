@@ -26,6 +26,9 @@ OVERRIDES = {
     (3, 3, 9): "KITT_SLOW",
     (1, 3, 10): "KITT_FAST",
     (3, 3, 10): "KITT_FAST",
+    # Fn+Left Win toggles game mode (replaces the old TG(2) gaming layer).
+    (1, 4, 1): "GAME_TOG",
+    (3, 4, 1): "GAME_TOG",
     # Fn+RShift -> layer 4 (stock behaviour). The saved layout left this
     # transparent, which made layer 4's QK_BOOT (Fn+RShift+Esc) unreachable.
     (1, 3, 12): "MO(4)",

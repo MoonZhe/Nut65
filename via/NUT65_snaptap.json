@@ -418,6 +418,11 @@
       "name": "Knight Rider faster",
       "title": "Knight Rider light bar: faster",
       "shortName": "KITT+"
+    },
+    {
+      "name": "Game mode",
+      "title": "Game mode: Left Win = Fn, Right Alt = Win, Snap Tap on",
+      "shortName": "GAME"
     }
   ],
   "layouts": {
