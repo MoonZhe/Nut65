@@ -14,6 +14,10 @@
 #define USER_KITT_SPEED_EEPROM_ADDR (USER_FLAGS_EEPROM_ADDR + 1)
 #define USER_MODES_EEPROM_ADDR (USER_FLAGS_EEPROM_ADDR + 2)
 
+// Add our key effects (rgb_matrix_user.inc) to the end of the board's
+// Fn+RGB_MOD cycle (needs the board change that reads this).
+#define NUT65_RGB_EXTRA_MODE RGB_MATRIX_CUSTOM_KITT_SWEEP, RGB_MATRIX_CUSTOM_KITT_1982, RGB_MATRIX_CUSTOM_KITT_REACTIVE, RGB_MATRIX_CUSTOM_BAR_ECHO
+
 // Lighting defaults, applied whenever the settings are reset (fresh EEPROM or
 // a factory reset): keys light up only when pressed, in KITT red.
 #undef RGB_MATRIX_DEFAULT_MODE

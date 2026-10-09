@@ -1,40 +1,64 @@
 # KITT scanner + Snap Tap for the Weikav Nut65
 
-A custom QMK firmware for the **Weikav / LEKU Nut65** (65%, tri-mode) that turns the keyboard's front light bar into a **2008-style KITT scanner** (Knight Industries Three Thousand), and adds **Razer-style Snap Tap** plus a one-key **game mode** for gaming. There is also a typing-speed meter for the light bar. VIA keeps working, and wired, Bluetooth and 2.4 GHz all still work.
+A custom QMK firmware for the **Weikav / LEKU Nut65** (65%, tri-mode). It turns the keyboard's front light bar into a **KITT scanner**, in both the 2008 KI3000 style and the original 1982 style, and can carry the scanner across the keys. It also adds **Razer-style Snap Tap** and a one-key **game mode** for gaming. It runs on **[Vial](https://get.vial.today/)**, so you can remap keys and set up tap dance, combos, key overrides and macros live, without reflashing. Wired, Bluetooth and 2.4 GHz all still work.
 
 ![KITT scanner on the Nut65 light bar](docs/kitt-red.gif)
 
 <sub>Rendered from the firmware's own animation code, frame for frame. On the keyboard it follows the light-bar brightness keys.</sub>
 
-## The scanner
+## The scanners
 
-The original 1982 KITT scanner is a single light bouncing back and forth. The 2008 KI3000 scanner instead **floods and drains in both directions**. The timing here was measured frame by frame from a [KI3000 scanner replica](https://www.youtube.com/watch?v=Lz5OhpBDkkE) and rebuilt on the keyboard's 80-LED bar:
+### 2008 (KI3000)
+The 2008 scanner **floods and drains in both directions**. Its timing was measured frame by frame from a [KI3000 scanner replica](https://www.youtube.com/watch?v=Lz5OhpBDkkE) and rebuilt on the keyboard's 80-LED bar:
 
 1. **Flood in:** light pours in from both ends and meets in the middle.
 2. **Drain to the middle:** the ends go dark first, and the light collapses into the centre.
 3. **Flood out:** light pours back out from the centre to the ends.
 4. **Drain to the ends:** a dark gap opens in the middle and spreads outward.
 
-Each phase starts 300 ms before the previous one finishes, so the movement never stops. Every moving edge has an 8-LED soft fade, and the bar is drawn per LED, so everything meets at the true centre. That matters because the board groups the bar into 15 uneven segments.
-
-It also plays once as a **boot animation** whenever the keyboard powers on, in your selected KITT colour (red if the scanner is off).
-
-It comes in **red, amber, blue, green, purple and rainbow**, with **5 speeds**:
+Each phase starts 300 ms before the previous one finishes, so the movement never stops. Every moving edge has an 8-LED soft fade. The bar is drawn per LED, so everything meets at the true centre; that matters because the board groups the bar into 15 uneven segments. It comes in **red, amber, blue, green, purple and rainbow**, with **5 speeds**:
 
 ![All six colour variants](docs/kitt-variants.gif)
+
+### 1982 (the original)
+
+![1982 KITT scanner](docs/kitt-1982.gif)
+
+The original is **eight red lamps** with one light sweeping back and forth. It was modelled on footage of the TV car:
+
+- The light lingers briefly at each end, and a full left-right-left cycle on the car takes about **1.8 s**.
+- Each lamp comes on fully as the light reaches it, then cools like an incandescent bulb. That leaves **4–5 lamps glowing at once** at about 100/80/60/40/20 %, and near the ends the trail wraps around as the light turns.
+
+On the bar it's drawn as 8 segments of 10 LEDs. The default speed is one step slower than the car, at 1.19 s per sweep; the KITT speed keys adjust it.
+
+Both scanners play once as a **boot animation** at power-on, across the light bar and the keys together, in your KITT colour.
+
+## Key effects
+On top of QMK's own effects, Fn + RGB_MOD steps through four that tie the keys to the light bar:
+
+| Effect | What it does |
+| --- | --- |
+| **KITT Sweep** | The 2008 scanner across the keys, in step with the bar: same clock, speed and colour. |
+| **KITT 1982** | The 1982 scanner across the keys. Each key takes the lamp above it. |
+| **KITT Reactive** | Keys stay dark. Each keypress sends a soft streak along its row in the scanner's colour, and the effect speed sets how fast it travels. |
+| **Bar Echo** | Each key shows whatever the light bar shows above it: solid colour, KITT, the WPM meter, even music mode. |
+
+Vial's Lighting tab lists QMK's built-in effects. Choose these four with Fn + RGB_MOD.
 
 ## Controls
 
 | Keys | What it does |
 | --- | --- |
-| **Fn + Insert** | Cycles the light bar. After the stock effects and solid colours come KITT red, amber, blue, green, purple and rainbow, then the typing-speed meter, then off. Remembered across power cycles. |
-| **Fn + ,** / **Fn + .** | KITT slower / faster. The key blinks white for each step and red ×3 at the slowest or fastest speed. Remembered. |
-| **Fn + PgUp / PgDn** | Light-bar brightness. The scanner follows it. |
+| **Fn + Insert** | Cycles the light bar: the stock effects and solid colours, then KITT 2008 red, amber, blue, green, purple and rainbow, then KITT 1982, then the typing-speed meter, then off. Remembered. |
+| **Fn + RGB_MOD** | Cycles the key effects. The four above come at the end. |
+| **Fn + ,** / **Fn + .** | KITT slower / faster (both scanners). The key blinks white for each step and red ×3 at the slowest or fastest speed. Remembered. |
+| **Fn + PgUp / PgDn** | Light-bar brightness. The scanners follow it. |
 | **Fn + G** | Snap Tap on A/D on or off. A and D flash green (on) or red (off). Remembered. |
 | **Fn + Left Win** | Game mode on or off. Left Win acts as Fn, Right Alt acts as Win, Snap Tap turns on, and the Left Win key glows red. Exit with Right Fn + Left Win. Remembered. |
-| **Fn + D** (hold 3 s) | Low-latency debounce: 1 ms (D blinks red) or 8 ms (D blinks white, the default). |
-| **Fn + Right Shift + Esc** | Bootloader (DFU), for flashing. |
+| **Fn + D** (hold 3 s) | Debounce: 1 ms low latency (D blinks red) or 8 ms (D blinks white, the default). Remembered. |
+| **Fn + Right Shift + Esc** | Bootloader (DFU), for flashing. Settings are kept. |
 | **Fn + Right Shift + Backspace** (hold 3 s) | Factory reset: back to the layout compiled into the firmware, and the default lighting (red Solid Reactive Simple keys, red KITT scanner). |
+| **Esc + Enter** (hold) | Vial unlock, when Vial asks for it. |
 
 ### Snap Tap
 This is last-input priority on **A** and **D**: pressing D while A is held releases A, and letting go of D re-presses A if it's still held. It's the same behaviour as Razer's Snap Tap and Wooting's SOCD. Turn it off for **CS2 on Valve servers**, which kick players for hardware SOCD.
@@ -49,24 +73,53 @@ A single toggle for gaming, with no duplicate layers:
 - **Snap Tap turns on.** It goes back to its previous setting when you leave game mode, and Fn + G still toggles it inside game mode.
 - **The Left Win key glows red** while game mode is on.
 
+## Firmware
+
+| File | What |
+| --- | --- |
+| `firmware/vial/leku_nut65_vial.bin` | **Recommended.** Vial, every lighting effect, everything above. |
+| `firmware/personal/leku_nut65_vial_personal.bin` | My own build: the same, with trimmed lighting. Keys: Solid Reactive Simple, KITT Reactive, KITT Sweep, KITT 1982, Bar Echo, Solid Color, Breathing, Typing Heatmap. Bar: solid colours, KITT, WPM, off. |
+| `firmware/leku_nut65_snaptap.bin` | VIA build on the OEM source, the earlier version of this project. It has the light-bar scanners, Snap Tap and game mode, but not Vial or the new key effects (the OEM board's Fn + RGB_MOD list can't reach them). |
+| `firmware/leku_nut65_default.bin` | Unmodified OEM source, to go back to stock. |
+
 ## Flashing
 
 > Flashing custom firmware is at your own risk and may void your warranty. The Nut65's WB32 bootloader can't be overwritten by a flash, so a bad flash is recoverable: re-flash, or go back with `firmware/leku_nut65_default.bin`.
 
-1. Plug in USB and switch to wired mode (**Fn + T**). Close VIA and the Weikav web driver.
+1. Plug in USB and switch to wired mode (**Fn + T**). Close Vial, VIA and the Weikav web driver.
 2. If Windows doesn't recognise the bootloader, install the WB32 DFU driver from [WestberryTech/wb32-dfu-updater](https://github.com/WestberryTech/wb32-dfu-updater).
 3. Enter DFU with **Fn + Right Shift + Esc**. The keyboard goes dark and shows up as `342D:DFA0`.
 4. Flash it. `wb32-dfu-updater_cli` comes with [QMK MSYS](https://msys.qmk.fm/):
    ```
-   wb32-dfu-updater_cli -t -s 0x08000000 -D firmware/leku_nut65_snaptap.bin
+   wb32-dfu-updater_cli -t -s 0x08000000 -D firmware/vial/leku_nut65_vial.bin
    wb32-dfu-updater_cli -R
    ```
-5. The first flash over the stock firmware resets VIA, so the keyboard boots into the layout compiled into the firmware. **That layout is mine** (see `nut65.layout.json`). After that, flashing this firmware again keeps your VIA layout and lighting: the build uses a fixed date, which VIA checks to decide whether its saved data is still valid. Hold **Fn + Right Shift + Backspace** for 3 s to go back to the compiled layout. Remap freely in VIA; load `via/NUT65_snaptap.json` under VIA's Design tab so the new keys show up as `SNAP`, `KITT-`, `KITT+` and `GAME`. If you restore a saved VIA layout, use `via/nut65.snaptap.layout.json`; an older layout file would overwrite the new keys.
+5. The first flash over the stock firmware, or over an older build of this one, resets all settings. The keyboard then boots into the layout compiled into the firmware. **That layout is mine** (see `nut65.layout.json`). After that, flashing keeps your Vial layout, macros, tap dances, combos and lighting. Hold **Fn + Right Shift + Backspace** for 3 s to go back to the compiled layout.
+
+## Vial
+Open [Vial](https://get.vial.today/) (or [vial.rocks](https://vial.rocks/) in Chrome). It works over USB and 2.4 GHz. The new keys show up by name: Snap Tap toggle, Knight Rider slower and faster, and Game mode.
+
+**Direct Control** in the Lighting tab hands the key LEDs to PC software such as OpenRGB or SignalRGB. Vial itself doesn't drive them in that mode, so the keys stay dark. The light bar stays under the keyboard's control.
 
 ## Building from source
 
-Built on the Nut65's OEM QMK source, using [QMK MSYS](https://msys.qmk.fm/):
+### Vial build
+Uses [vial-qmk](https://github.com/vial-kb/vial-qmk) and [QMK MSYS](https://msys.qmk.fm/). The board's OEM code is ported in `vial/`:
 
+```
+git clone https://github.com/vial-kb/vial-qmk.git
+cd vial-qmk
+git checkout dd43959a            # vial-qmk this was built and tested against
+git submodule update --init --recursive --depth 1
+cp -r ../Nut65/vial/keyboards/* keyboards/
+git apply ../Nut65/patches/vial-qmk-pixel-fractal-no-led.patch ../Nut65/patches/vial-qmk-reactive-offset-clamp.patch
+python ../Nut65/tools/sync_vial_keymap.py keyboards/leku/nut65
+bash ../Nut65/tools/build_vial.sh            # builds vial and vial_personal into .build/
+```
+
+`sync_vial_keymap.py` generates both Vial keymaps from the shared source in `keymap/snaptap`. `build_vial.sh` calls QMK's inner makefile directly so that `-j` reaches the compiler, which makes it several times faster on Windows.
+
+### VIA build (OEM source)
 ```
 git clone https://github.com/hangshengkeji/qmk_firmware.git
 cd qmk_firmware
@@ -77,21 +130,23 @@ cp -r ../Nut65/keymap/snaptap keyboards/leku/nut65/keymaps/
 make leku/nut65:snaptap
 ```
 
-To use your own layout as the default, export it from VIA and regenerate the layers:
+### Your own layout and tuning
+To use your own layout as the default, export it from VIA or Vial and regenerate the layers:
 
 ```
-python tools/gen_layers.py your.layout.json <qmk_firmware>/keyboards/leku/nut65/keyboard.json > keymap/snaptap/layers.inc
+python tools/gen_layers.py your.layout.json <qmk>/keyboards/leku/nut65/keyboard.json > keymap/snaptap/layers.inc
 ```
 
-To tune the scanner, edit `keymap/snaptap/keymap.c`:
+To tune the scanners, edit `keymap/snaptap/keymap.c`:
 
 | Setting | What it changes |
 | --- | --- |
-| `KITT_FLOOD_MS` / `KITT_DRAIN_MS` | Phase lengths |
-| `KITT_TRANSITION_MS` | Overlap between phases (negative) or a pause (positive) |
-| `KITT_SOFT` | Edge softness |
-| `kitt_speed_pct` | Speed levels |
-| `kitt_hues` | Colours |
+| `KITT_FLOOD_MS` / `KITT_DRAIN_MS` | 2008 phase lengths |
+| `KITT_TRANSITION_MS` | 2008 overlap between phases (negative) or a pause (positive) |
+| `KITT_SOFT` | 2008 edge softness |
+| `K82_PASS_MS` / `K82_COOL_MS` | 1982 sweep time and how long a lamp takes to cool |
+| `kitt_speed_pct` | Speed levels (both) |
+| `kitt_hues` | 2008 colours |
 
 Afterwards, `python tools/render_preview.py` re-renders the GIFs above from the same maths.
 
@@ -99,28 +154,34 @@ Afterwards, `python tools/render_preview.py` re-renders the GIFs above from the 
 
 | Path | What |
 | --- | --- |
-| `firmware/` | Ready-to-flash builds: `leku_nut65_snaptap.bin` (this firmware) and `leku_nut65_default.bin` (unmodified OEM source, the fallback) |
-| `keymap/snaptap/` | Keymap source: Snap Tap, game mode, the KITT scanner and boot animation, speed keys and the layout |
-| `patches/` | Small board patch: lets the keymap draw over the board's light-bar modes, and adds read-only light-bar getters |
-| `via/` | VIA definition with the new keys, plus the matching layout |
-| `tools/` | Layout generator, GIF renderer, a VIA probe that reads the live keymap, and `wake_log.py` (reads the wake-debug log) |
+| `firmware/` | Ready-to-flash builds (see above) |
+| `keymap/snaptap/` | Keymap source shared by the Vial and VIA builds: Snap Tap, game mode, the scanners, the key effects (`rgb_matrix_user.inc`), the boot animation and the layout |
+| `vial/` | The Nut65 board and its wireless stack, ported to vial-qmk |
+| `patches/` | `nut65-indicators-user-hook.patch` for the OEM tree; two QMK bug fixes for vial-qmk; the wake-debug log |
+| `via/` | Key definitions (VIA design file, also used to generate `vial.json`), plus the matching layout |
+| `tools/` | Vial keymap generator and build script, layout generator, GIF renderer, a VIA probe, and `wake_log.py` |
 
 ### How it hooks in
 - The board already owns `process_record_user`, so the keymap uses `pre_process_record_user`.
-- QMK draws `rgb_matrix_indicators_user` before the board's own light-bar code, which then paints over it. The patch makes the board's `rgb_matrix_indicators_advanced_kb` end by calling `rgb_matrix_indicators_advanced_user`, so the scanner is drawn last.
-- The KITT variants slot into the stock Fn+Insert cycle between solid white and off. While a variant is showing, the board stays in its white mode underneath, so the brightness keys keep working.
+- The board's `rgb_matrix_indicators_advanced_kb` ends by calling `rgb_matrix_indicators_advanced_user`, so the light-bar modes are drawn last.
+- The KITT and WPM modes slot into the stock Fn+Insert cycle. While one is showing, the board stays in its white mode underneath, so the brightness keys keep working.
 - Game mode is a flag, not a layer: in `pre_process_record_user`, Left Win switches the Fn layer on and off, and Right Alt sends Right Win.
-- Settings live in three bytes added to the end of the board's user EEPROM block.
+- Settings live in a few bytes added to the end of the board's user EEPROM block.
+- Vial stamps its saved data with a random ID per build and normally wipes it on every flash. `via_init_kb` re-stamps data that was valid under a previous build, as long as a layout-version byte (`VIAL_PERSIST_VERSION`) still matches.
 
-### Wake-from-sleep fix
-On 2.4 GHz, the first keypress after the keyboard had slept would sometimes register but only flash the lights, and a second press was needed to wake it fully. The cause is in the OEM wireless code, which has two 5-minute sleep timers: the low-power idle timeout and the wireless connection timeout. When the second one fired while the keyboard was already falling asleep, its sleep request was left pending and sent the keyboard straight back to sleep right after the next wake. `suspend_wakeup_init_user` now clears any leftover request on wake.
-
-It was found with a temporary event log, which is still here for debugging sleep issues. Apply `patches/debug-wake-logging.patch`, build with `make leku/nut65:snaptap WAKE_DEBUG=yes`, and read the log over USB with `python tools/wake_log.py --elf <build>.elf` (needs `hidapi`). The log is a 128-entry ring buffer in RAM. It records sleep and wake steps, wake sources, sleep requests and who made them, radio link changes, lighting state, and the key positions of the first few keypresses after each wake. The published firmware doesn't include it.
+## Bugs fixed along the way
+- **Every flash reset all settings.** The OEM code for Fn + Right Shift + Esc called `eeconfig_disable()` before jumping to the bootloader, so the next boot did a full factory reset. That call is gone.
+- **Wake from sleep.** On 2.4 GHz, the first keypress after sleep would sometimes register but only flash the lights. The OEM wireless code has two 5-minute sleep timers. When the second one fired while the keyboard was already falling asleep, its sleep request was left pending and sent the keyboard straight back to sleep after the next wake. `suspend_wakeup_init_user` now clears any leftover request on wake. It was found with a temporary event log, which is still here: apply `patches/debug-wake-logging.patch` to the OEM tree, build with `WAKE_DEBUG=yes`, and read it with `python tools/wake_log.py --elf <build>.elf`.
+- **Fn + D did nothing.** The OEM debounce patch used the fixed 8 ms in both branches, and the saved setting flipped meaning on every boot. The Vial build uses its own debounce (`hs_debounce.c`), so 1 ms really is 1 ms.
+- **Solid Reactive lit every key.** Newer QMK compiles its colour maths with `FASTLED_SCALE8_FIXED`, which lets the reactive effects' fade overflow past 255 and wrap back to full brightness. Fixed in `patches/vial-qmk-reactive-offset-clamp.patch`; current upstream QMK still has the bug.
+- **Pixel Fractal froze the keyboard.** It wrote to LED `NO_LED` (255) for matrix positions without a key, past the end of the LED buffer. Upstream QMK has since fixed this, and the fix is backported in `patches/vial-qmk-pixel-fractal-no-led.patch`.
+- **Raw HID overflow.** A light-recording command trusted a size from the host and could write past the 32-byte HID packet. It's now clamped.
 
 ## Credits
 - Weikav / [hangshengkeji](https://github.com/hangshengkeji/qmk_firmware) for publishing the Nut65 QMK source.
+- [Vial](https://get.vial.today/) and [vial-qmk](https://github.com/vial-kb/vial-qmk).
 - [Pascal Getreuer's SOCD Cleaner](https://getreuer.info/posts/keyboards/socd-cleaner/index.html), the basis of the Snap Tap logic.
-- [Knight Research](https://www.youtube.com/watch?v=Lz5OhpBDkkE) for the KI3000 scanner replica the animation was measured from.
+- [Knight Research](https://www.youtube.com/watch?v=Lz5OhpBDkkE) for the KI3000 scanner replica the 2008 animation was measured from.
 - [bhctsntrk/nut65-signalrgb](https://github.com/bhctsntrk/nut65-signalrgb) for documenting Nut65 flashing and recovery.
 
 ## License

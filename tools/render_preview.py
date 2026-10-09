@@ -1,6 +1,7 @@
 """Render animated GIF previews of the KITT light-bar scanner.
 
-Uses the same integer maths as kitt_render() in keymap/snaptap/keymap.c, so the
+Uses the same integer maths as kitt_render() and kitt82_begin() (the 1982
+scanner) in keymap/snaptap/keymap.c, so the
 preview matches the keyboard frame for frame (the real bar is dimmer: it follows
 the Fn+PgUp/PgDn light-bar brightness).
 
@@ -20,6 +21,7 @@ FLOOD_MS, DRAIN_MS, TRANSITION_MS = 1200, 1800, -300
 SPEED_PCT = [175, 130, 100, 78, 60]
 DEFAULT_SPEED = 1
 HUES = {"Red": 0, "Amber": 20, "Blue": 170, "Green": 85, "Purple": 200, "Rainbow": None}
+K82_LAMPS, K82_PASS_MS, K82_COOL_MS = 8, 915, 550
 
 
 def ease(x):
@@ -52,6 +54,33 @@ def levels(t_ms, speed=DEFAULT_SPEED):
     return half + half[::-1], period
 
 
+def levels_1982_frames(frame_ms, speed=DEFAULT_SPEED, step_ms=2):
+    """kitt82_begin() / kitt82_led_level(): eight lamps that cool after the light passes.
+
+    Stateful like the firmware (each lamp remembers when the light last left
+    it), so this runs the timeline in small steps and yields one bar per frame.
+    Simulates two cycles and returns the second, so the trail is warmed up.
+    """
+    pass_ms = K82_PASS_MS * SPEED_PCT[speed] // 100
+    period = 2 * pass_ms
+    lit_at = [-10**9] * K82_LAMPS
+    frames = []
+    for now in range(0, 2 * period, step_ms):
+        t = now % period
+        x = t if t < pass_ms else 2 * pass_ms - t
+        head = ease(x * 1024 // pass_ms) * (K82_LAMPS * 256 - 1) // 1024
+        lit_at[head // 256] = now
+        if now >= period and (now - period) % frame_ms == 0:
+            lamps = [0 if now - l >= K82_COOL_MS else 255 - (now - l) * 255 // K82_COOL_MS for l in lit_at]
+            bar = []
+            for led in range(LEDS):
+                level = lamps[led * K82_LAMPS // LEDS]
+                pos = led % (LEDS // K82_LAMPS)
+                bar.append(level // 2 if pos in (0, LEDS // K82_LAMPS - 1) else level)
+            frames.append(bar)
+    return frames, period
+
+
 def qmk_hsv_to_rgb(h, s, v):
     """quantum/color.c hsv_to_rgb_impl without the CIE curve (as built)."""
     if s == 0:
@@ -73,14 +102,18 @@ def draw_bar(draw, x0, y0, width, height, lv, hue, tick):
         draw.rounded_rectangle([x + 1, y0, x + pitch - 1, y0 + height], radius=2, fill=(r, g, b))
 
 
-def render(rows, path, width, bar_h, row_gap, frame_ms, label=False):
+def render(rows, path, width, bar_h, row_gap, frame_ms, label=False, scanner=levels):
     pad = 24
     label_w = 90 if label else 0
     height = pad * 2 + len(rows) * bar_h + (len(rows) - 1) * row_gap
-    _, period = levels(0)
+    if scanner is levels_1982_frames:
+        bars, period = levels_1982_frames(frame_ms)
+        timeline = list(zip(range(0, period, frame_ms), bars))
+    else:
+        _, period = scanner(0)
+        timeline = [(t, scanner(t)[0]) for t in range(0, period, frame_ms)]
     frames = []
-    for t in range(0, period, frame_ms):
-        lv, _ = levels(t)
+    for t, lv in timeline:
         tick = (t // 20) % 256
         led = Image.new("RGB", (width, height), (8, 8, 8))
         d = ImageDraw.Draw(led)
@@ -111,6 +144,7 @@ def main(out_dir="docs"):
     os.makedirs(out_dir, exist_ok=True)
     render([("Red", HUES["Red"])], os.path.join(out_dir, "kitt-red.gif"), 900, 26, 0, 40)
     render(list(HUES.items()), os.path.join(out_dir, "kitt-variants.gif"), 760, 16, 14, 60, label=True)
+    render([("Red", HUES["Red"])], os.path.join(out_dir, "kitt-1982.gif"), 900, 26, 0, 30, scanner=levels_1982_frames)
 
 
 if __name__ == "__main__":
