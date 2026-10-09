@@ -2,6 +2,8 @@
 
 A custom QMK firmware for the **Weikav / LEKU Nut65** (65%, tri-mode). It turns the keyboard's front light bar into a **KITT scanner**, in both the 2008 KI3000 style and the original 1982 style, and can carry the scanner across the keys. It also adds **Razer-style Snap Tap** and a one-key **game mode** for gaming. It runs on **[Vial](https://get.vial.today/)**, so you can remap keys and set up tap dance, combos, key overrides and macros live, without reflashing. Wired, Bluetooth and 2.4 GHz all still work.
 
+**[Download the latest release](https://github.com/MoonZhe/Nut65/releases/latest)**, then see [Flashing](#flashing).
+
 ![2008 KITT scanner on the Nut65 light bar](docs/kitt-red.gif)
 
 ![Original 1982 KITT scanner on the Nut65 light bar](docs/kitt-1982.gif)
@@ -35,8 +37,10 @@ On the bar it's drawn as 8 segments of 10 LEDs. The default speed is one step sl
 
 Both scanners play once as a **boot animation** at power-on, across the light bar and the keys together, in your KITT colour.
 
-## Key effects
-On top of QMK's own effects, Fn + RGB_MOD steps through four that tie the keys to the light bar:
+## Lighting
+
+### Custom key effects
+Four key effects tie the keys to the light bar. They come at the end of the **Fn + \** cycle:
 
 | Effect | What it does |
 | --- | --- |
@@ -45,14 +49,33 @@ On top of QMK's own effects, Fn + RGB_MOD steps through four that tie the keys t
 | **KITT Reactive** | Keys stay dark. Each keypress sends a soft streak along its row in the scanner's colour, and the effect speed sets how fast it travels. |
 | **Bar Echo** | Each key shows whatever the light bar shows above it: solid colour, KITT, the WPM meter, even music mode. |
 
-Vial's Lighting tab lists QMK's built-in effects. Choose these four with Fn + RGB_MOD.
+### All key effects
+
+| Build | Fn + \ cycles through | Vial's Lighting tab offers |
+| --- | --- | --- |
+| **Vial** (`leku_nut65_vial.bin`) | Cycle Left Right, Cycle Up Down, Rainbow Moving Chevron, Cycle Out In, Cycle Out In Dual, Cycle Pinwheel, Cycle Spiral, Dual Beacon, Rainbow Beacon, Rainbow Pinwheels, Raindrops, Jellybean Raindrops, Pixel Flow, Digital Rain, Solid Reactive Simple, Solid Reactive Cross, Splash, Alphas Mods, Gradient Left Right, Breathing, Band Sat, Band Val, Band Pinwheel Val, Band Spiral Val, Cycle All, then **KITT Sweep, KITT 1982, KITT Reactive, Bar Echo** | All 44 QMK effects built in (below), plus **Direct Control** (see [Vial](#vial)) |
+| **Personal** (`leku_nut65_vial_personal.bin`) | Solid Reactive Simple, **KITT Reactive, KITT Sweep, KITT 1982, Bar Echo**, Solid Color, Breathing, Typing Heatmap | Solid Color, Breathing, Typing Heatmap, Solid Reactive Simple, Direct Control |
+| **VIA** (`leku_nut65_snaptap.bin`) | The stock list (the Vial build's list without the four custom effects) | VIA's lighting menu |
+
+The 44 QMK effects in the Vial build: Solid Color, Alphas Mods, Gradient Up Down, Gradient Left Right, Breathing, Band Sat, Band Val, Band Pinwheel Sat, Band Pinwheel Val, Band Spiral Sat, Band Spiral Val, Cycle All, Cycle Left Right, Cycle Up Down, Rainbow Moving Chevron, Cycle Out In, Cycle Out In Dual, Cycle Pinwheel, Cycle Spiral, Dual Beacon, Rainbow Beacon, Rainbow Pinwheels, Raindrops, Jellybean Raindrops, Hue Breathing, Hue Pendulum, Hue Wave, Pixel Rain, Pixel Flow, Pixel Fractal, Typing Heatmap, Digital Rain, Solid Reactive Simple, Solid Reactive, Solid Reactive Wide, Solid Reactive Multiwide, Solid Reactive Cross, Solid Reactive Multicross, Solid Reactive Nexus, Solid Reactive Multinexus, Splash, Multisplash, Solid Splash, Solid Multisplash.
+
+The default after a factory reset is **Solid Reactive Simple** in red: keys stay dark and light up when pressed. Vial's Lighting tab can't select the custom effects, so use Fn + \ for those. **Fn + Enter** steps the key colour, **Fn + ↑ / ↓** set key brightness, and **Fn + ← / →** set effect speed. KITT Reactive's streak speed is the effect speed.
+
+### Light-bar modes (Fn + Insert)
+
+| Build | Fn + Insert steps through |
+| --- | --- |
+| **Vial** and **VIA** | Rainbow flowing right, rainbow flowing left, rainbow flowing into the centre, colour-cycle breathing (8 colours), solid red, orange, yellow, green, cyan, blue, purple, white, **KITT 2008** red, amber, blue, green, purple, rainbow, **KITT 1982**, **typing-speed meter**, off |
+| **Personal** | Solid red, orange, yellow, green, cyan, blue, purple, white, **KITT 2008** red, amber, blue, green, purple, rainbow, **KITT 1982**, **typing-speed meter**, off |
+
+**Fn + Delete** (music mode) hands the light bar to the board's built-in music-reactive light controller. Press it again for the controller's next pattern, and press Fn + Insert to come back to the cycle. Fn + PgUp / PgDn set the light-bar brightness. The KITT modes and the meter follow it.
 
 ## Controls
 
 | Keys | What it does |
 | --- | --- |
-| **Fn + Insert** | Cycles the light bar: the stock effects and solid colours, then KITT 2008 red, amber, blue, green, purple and rainbow, then KITT 1982, then the typing-speed meter, then off. Remembered. |
-| **Fn + RGB_MOD** | Cycles the key effects. The four above come at the end. |
+| **Fn + Insert** | Cycles the light bar (see [Lighting](#lighting)). Remembered. |
+| **Fn + \** | Cycles the key effects (see [Lighting](#lighting)). |
 | **Fn + ,** / **Fn + .** | KITT slower / faster (both scanners). The key blinks white for each step and red ×3 at the slowest or fastest speed. Remembered. |
 | **Fn + PgUp / PgDn** | Light-bar brightness. The scanners follow it. |
 | **Fn + G** | Snap Tap on A/D on or off. A and D flash green (on) or red (off). Remembered. |
@@ -77,11 +100,13 @@ A single toggle for gaming, with no duplicate layers:
 
 ## Firmware
 
+Download from **[Releases](https://github.com/MoonZhe/Nut65/releases/latest)**. The same files are in `firmware/`, and `SHA256SUMS.txt` on the release lets you check a download.
+
 | File | What |
 | --- | --- |
 | `firmware/vial/leku_nut65_vial.bin` | **Recommended.** Vial, every lighting effect, everything above. |
 | `firmware/personal/leku_nut65_vial_personal.bin` | My own build: the same, with trimmed lighting. Keys: Solid Reactive Simple, KITT Reactive, KITT Sweep, KITT 1982, Bar Echo, Solid Color, Breathing, Typing Heatmap. Bar: solid colours, KITT, WPM, off. |
-| `firmware/leku_nut65_snaptap.bin` | VIA build on the OEM source, the earlier version of this project. It has the light-bar scanners, Snap Tap and game mode, but not Vial or the new key effects (the OEM board's Fn + RGB_MOD list can't reach them). |
+| `firmware/leku_nut65_snaptap.bin` | VIA build on the OEM source, the earlier version of this project. It has the light-bar scanners, Snap Tap and game mode, but not Vial or the new key effects (the OEM board's Fn + \ list can't reach them). |
 | `firmware/leku_nut65_default.bin` | Unmodified OEM source, to go back to stock. |
 
 ## Flashing
@@ -91,7 +116,7 @@ A single toggle for gaming, with no duplicate layers:
 1. Plug in USB and switch to wired mode (**Fn + T**). Close Vial, VIA and the Weikav web driver.
 2. If Windows doesn't recognise the bootloader, install the WB32 DFU driver from [WestberryTech/wb32-dfu-updater](https://github.com/WestberryTech/wb32-dfu-updater).
 3. Enter DFU with **Fn + Right Shift + Esc**. The keyboard goes dark and shows up as `342D:DFA0`.
-4. Flash it. `wb32-dfu-updater_cli` comes with [QMK MSYS](https://msys.qmk.fm/):
+4. Flash the file you downloaded from [Releases](https://github.com/MoonZhe/Nut65/releases/latest). `wb32-dfu-updater_cli` comes with [QMK MSYS](https://msys.qmk.fm/):
    ```
    wb32-dfu-updater_cli -t -s 0x08000000 -D firmware/vial/leku_nut65_vial.bin
    wb32-dfu-updater_cli -R
