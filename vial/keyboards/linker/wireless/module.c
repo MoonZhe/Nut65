@@ -161,12 +161,20 @@ static void md_receive_msg_task(void) {
 
                 // raw data
                 if ((md_rev_payload[0] == MD_REV_CMD_RAW) && (md_rev_payload[1] == MD_REV_CMD_RAW_OUT)) {
+                    if (data > MD_RAW_SIZE) { // Length byte: a raw packet is at most MD_RAW_SIZE.
+                        data_count = 0;
+                        continue;
+                    }
                     md_rev_payload[data_count++] = data;
                     data_remain                  = data + 1;
                     continue;
                 }
             }
             default: {
+                if (data_count >= sizeof(md_rev_payload)) { // Never write past the buffer.
+                    data_count = 0;
+                    continue;
+                }
                 md_rev_payload[data_count++] = data;
                 data_remain--;
 

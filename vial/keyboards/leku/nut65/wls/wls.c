@@ -299,6 +299,21 @@ void lpwr_stop_hook_post(void) {
     }
 }
 
+#ifdef VIAL_ENABLE
+#    include "vial.h"
+#endif
+
+// A host-requested factory reset wipes everything, so under Vial it needs the
+// keyboard unlocked (Esc + Enter), like Vial's own protected commands. VIA has
+// no lock, so the VIA build keeps the stock behaviour.
+static bool nut65_reset_allowed(void) {
+#ifdef VIAL_ENABLE
+    return vial_unlocked;
+#else
+    return true;
+#endif
+}
+
 void via_custom_value_command_kb(uint8_t *data, uint8_t length) {
     // data = [ command_id, channel_id, value_id, value_data ]
     uint8_t *command_id = &(data[0]);
@@ -358,7 +373,7 @@ void via_custom_value_command_kb(uint8_t *data, uint8_t length) {
             }
         } break;
         case id_eeprom_reset: {
-            hs_reset_settings();
+            if (nut65_reset_allowed()) hs_reset_settings();
         } break;
         case 0x21: { 
             if (data[1]){ 
@@ -382,7 +397,7 @@ bool via_command_kb(uint8_t *data, uint8_t length) {
     hs_rgb_blink_set_timer(timer_read32());
     
     uint8_t *command_id = &(data[0]);
-    if (*command_id == id_eeprom_reset) {
+    if (*command_id == id_eeprom_reset && nut65_reset_allowed()) {
         hs_reset_settings();
     }
     return false;

@@ -176,6 +176,8 @@ Afterwards, `python tools/render_preview.py` re-renders the GIFs above from the 
 - **Solid Reactive lit every key.** Newer QMK compiles its colour maths with `FASTLED_SCALE8_FIXED`, which lets the reactive effects' fade overflow past 255 and wrap back to full brightness. Fixed in `patches/vial-qmk-reactive-offset-clamp.patch`; current upstream QMK still has the bug.
 - **Pixel Fractal froze the keyboard.** It wrote to LED `NO_LED` (255) for matrix positions without a key, past the end of the LED buffer. Upstream QMK has since fixed this, and the fix is backported in `patches/vial-qmk-pixel-fractal-no-led.patch`.
 - **Raw HID overflow.** A light-recording command trusted a size from the host and could write past the 32-byte HID packet. It's now clamped.
+- **Wireless receive overflow.** The radio-module parser trusted a frame's length byte and could write past its 36-byte buffer. Raw HID arrives over 2.4 GHz and Bluetooth through this parser. Oversized frames are now dropped.
+- **Factory reset over USB without unlocking.** The board answered VIA's EEPROM-reset command itself, ahead of Vial's lock. In the Vial build it now needs Vial unlocked (Esc + Enter). The Fn + Right Shift + Backspace key is unaffected.
 
 ## Credits
 - Weikav / [hangshengkeji](https://github.com/hangshengkeji/qmk_firmware) for publishing the Nut65 QMK source.
