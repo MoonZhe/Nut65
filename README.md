@@ -2,9 +2,11 @@
 
 A custom QMK firmware for the **Weikav / LEKU Nut65** (65%, tri-mode). It turns the keyboard's front light bar into a **KITT scanner**, in both the 2008 KI3000 style and the original 1982 style, and can carry the scanner across the keys. It also adds **Razer-style Snap Tap** and a one-key **game mode** for gaming. It runs on **[Vial](https://get.vial.today/)**, so you can remap keys and set up tap dance, combos, key overrides and macros live, without reflashing. Wired, Bluetooth and 2.4 GHz all still work.
 
-![KITT scanner on the Nut65 light bar](docs/kitt-red.gif)
+![2008 KITT scanner on the Nut65 light bar](docs/kitt-red.gif)
 
-<sub>Rendered from the firmware's own animation code, frame for frame. On the keyboard it follows the light-bar brightness keys.</sub>
+![Original 1982 KITT scanner on the Nut65 light bar](docs/kitt-1982.gif)
+
+<sub>2008 (top) and the original 1982 scanner (bottom), rendered from the firmware's own animation code, frame for frame. On the keyboard they follow the light-bar brightness keys.</sub>
 
 ## The scanners
 
