@@ -10,11 +10,16 @@
 //     the Fn+Insert light-bar cycle (after white): light floods in from both
 //     ends, drains into the middle, floods back out and drains to the ends.
 //     Fn+, / Fn+. = slower / faster. Plays one fast cycle at power-on.
+//   - A typing speed meter on the light bar, after KITT in the Fn+Insert
+//     cycle.
 //   - Fn+Left Win: game mode. Left Win acts as Fn and Right Alt as Win, Snap
 //     Tap turns on, and the Left Win key glows red.
 
 #include QMK_KEYBOARD_H
 #include "rgb_record/rgb_record.h"
+#ifdef WAKE_DEBUG
+#    include "wake_debug.h"
+#endif
 
 // QK_KB_0..29 are taken by the board's keycodes in keyboard.json.
 #define SNAP_TOG QK_KB_30 // VIA CUSTOM(30)
@@ -160,6 +165,7 @@ static void process_socd(uint16_t keycode, keyrecord_t *record, socd_pair_t *pai
 static const uint8_t kitt_speed_pct[] = {175, 130, 100, 78, 60};
 #define KITT_SPEEDS        ARRAY_SIZE(kitt_speed_pct)
 #define KITT_DEFAULT_SPEED 1
+#define KITT_DEFAULT_VARIANT 1 // Red: the scanner is on by default.
 #define KITT_RAINBOW  0xFF
 #define KITT_BOARD_LAST_MODE 11 // Board's last colour mode before "off".
 
@@ -186,6 +192,17 @@ static uint32_t kitt_timer;
 static uint8_t  speed_flash_led;
 static bool     speed_flash_limit;
 static uint32_t speed_flash_timer = 0;
+
+// Light-bar modes that follow the KITT variants in the Fn+Insert cycle. Like
+// KITT they paint over the board's white mode (11). Saved in the modes byte.
+enum { BAR_NONE = 0, BAR_WPM, BAR_LAST = BAR_WPM };
+static uint8_t bar_mode = BAR_NONE;
+static void    user_modes_save(void);
+
+static void bar_set(uint8_t mode) {
+    bar_mode = mode;
+    user_modes_save();
+}
 
 // Board accessors added by patches/nut65-indicators-user-hook.patch.
 uint8_t nut65_rl_mode(void);
@@ -214,6 +231,11 @@ static bool kitt_process_rl_mod(void) {
             return false;
         }
         kitt_set(0);
+        bar_set(BAR_WPM);
+        return false;
+    }
+    if (bar_mode == BAR_WPM) {
+        bar_set(BAR_NONE);
         return true; // Board advances 11 -> 12 (off).
     }
     if (nut65_rl_mode() == KITT_BOARD_LAST_MODE) {
@@ -303,6 +325,7 @@ static void boot_anim_render(void) {
 #define USER_MODES_MARKER     0xB0
 #define USER_MODE_GAME        0x01
 #define USER_MODE_SNAP_BEFORE 0x02
+#define USER_MODE_BAR_SHIFT   2 // Bits 2..3: light-bar mode (BAR_*).
 #define LED_INDEX_LGUI        8
 
 static bool    game_mode        = false;
@@ -314,6 +337,7 @@ static void user_modes_save(void) {
     uint8_t modes = USER_MODES_MARKER;
     if (game_mode) modes |= USER_MODE_GAME;
     if (game_snap_before) modes |= USER_MODE_SNAP_BEFORE;
+    modes |= bar_mode << USER_MODE_BAR_SHIFT;
     eeprom_update_byte(USER_MODES_EEPROM_ADDR, modes);
 }
 
@@ -367,6 +391,102 @@ static bool game_mode_process(uint16_t keycode, keyrecord_t *record) {
 }
 
 // ---------------------------------------------------------------------------
+// Light-bar helpers for the WPM meter. Bar LEDs are numbered
+// 0..79 from the left; `level` is 0..255 on top of the light-bar brightness.
+
+static void bar_led(uint8_t i, RGB c, uint8_t level) {
+    const uint16_t v = (uint16_t)level * nut65_rl_brightness() / 255;
+    rgb_matrix_set_color(KITT_LED_FIRST + i, c.r * v / 255, c.g * v / 255, c.b * v / 255);
+}
+
+static RGB bar_hue(uint8_t hue) {
+    return hsv_to_rgb((HSV){.h = hue, .s = 255, .v = 255});
+}
+
+// ---------------------------------------------------------------------------
+// Typing speed meter: the bar fills outwards from the middle as WPM rises,
+// green at the centre through yellow to red at the ends. A white peak marker
+// holds at the highest point, then falls back.
+
+#define WPM_FULL         120 // WPM that fills the bar.
+#define WPM_EASE_STEP_MS 10  // The fill moves 1/8 of the way to its target per step.
+#define WPM_PEAK_HOLD_MS 1500
+#define WPM_PEAK_FALL_MS 40 // Per LED, once the hold is over.
+#define WPM_IDLE_LEVEL   40 // Centre LEDs glow this much at 0 WPM, so the mode is visible.
+
+static int32_t  wpm_level; // Fill per half, LEDs * 256.
+static uint32_t wpm_ease_timer;
+static uint8_t  wpm_peak; // LEDs from the middle.
+static uint32_t wpm_peak_timer;
+
+static void wpm_render(void) {
+    const int32_t target = (int32_t)MIN(get_current_wpm(), WPM_FULL) * KITT_HALF * 256 / WPM_FULL;
+    if (timer_elapsed32(wpm_ease_timer) > 500) {
+        wpm_ease_timer = timer_read32(); // Mode just switched on.
+    }
+    while (timer_elapsed32(wpm_ease_timer) >= WPM_EASE_STEP_MS) {
+        wpm_ease_timer += WPM_EASE_STEP_MS;
+        wpm_level += (target - wpm_level) / 8;
+    }
+
+    const uint8_t lit = (wpm_level + 255) / 256;
+    if (lit >= wpm_peak) {
+        wpm_peak       = lit;
+        wpm_peak_timer = timer_read32();
+    } else if (timer_elapsed32(wpm_peak_timer) > WPM_PEAK_HOLD_MS + WPM_PEAK_FALL_MS) {
+        wpm_peak--;
+        wpm_peak_timer += WPM_PEAK_FALL_MS;
+    }
+
+    for (uint8_t d = 0; d < KITT_HALF; d++) {
+        const int32_t fill  = wpm_level - (int32_t)d * 256; // Soft one-LED tip.
+        uint8_t       level = fill <= 0 ? 0 : fill >= 256 ? 255 : fill;
+        RGB           c     = bar_hue(85 - 85 * d / (KITT_HALF - 1));
+        if (d == 0 && level < WPM_IDLE_LEVEL) {
+            level = WPM_IDLE_LEVEL;
+        }
+        if (wpm_peak > lit && d == wpm_peak - 1) {
+            c     = (RGB){255, 255, 255};
+            level = 255;
+        }
+        bar_led(KITT_HALF - 1 - d, c, level);
+        bar_led(KITT_HALF + d, c, level);
+    }
+}
+
+// ---------------------------------------------------------------------------
+
+// Wake fix. The board has two 5-minute sleep timers: the low-power idle
+// timeout (keyboards/linker/wireless/lowpower.c) and the wireless connection
+// timeout (wls/wls.c). When the second fires while the keyboard is already
+// falling asleep, its sleep request stays pending and sends the keyboard
+// straight back to sleep right after the next wake, so the first keypress only
+// flashes the lights. Drop any such leftover request on wake; the board
+// restarts its own timer right after this.
+void lpwr_set_timeout_manual(bool enable);
+
+void suspend_wakeup_init_user(void) {
+    lpwr_set_timeout_manual(false);
+#ifdef WAKE_DEBUG
+    wake_debug_resume();
+#endif
+}
+
+// ---------------------------------------------------------------------------
+
+// Settings reset (fresh EEPROM or factory reset): scanner on in red, Snap Tap
+// and game mode off, default speed.
+void eeconfig_init_user(void) {
+    snaptap_enabled  = false;
+    kitt_mode        = KITT_DEFAULT_VARIANT;
+    kitt_speed       = KITT_DEFAULT_SPEED;
+    game_mode        = false;
+    game_snap_before = false;
+    bar_mode         = BAR_NONE;
+    user_flags_save();
+    eeprom_update_byte(USER_KITT_SPEED_EEPROM_ADDR, kitt_speed);
+    user_modes_save();
+}
 
 void keyboard_post_init_user(void) {
     uint8_t flags = eeprom_read_byte(USER_FLAGS_EEPROM_ADDR);
@@ -374,6 +494,8 @@ void keyboard_post_init_user(void) {
         snaptap_enabled = flags & USER_FLAG_SNAPTAP;
         kitt_mode       = (flags >> USER_FLAGS_KITT_SHIFT) & 0x07;
         if (kitt_mode > KITT_VARIANTS) kitt_mode = 0;
+    } else {
+        kitt_mode = KITT_DEFAULT_VARIANT; // Never saved: start with the scanner on.
     }
     uint8_t speed = eeprom_read_byte(USER_KITT_SPEED_EEPROM_ADDR);
     kitt_speed    = speed < KITT_SPEEDS ? speed : KITT_DEFAULT_SPEED;
@@ -381,7 +503,12 @@ void keyboard_post_init_user(void) {
     if ((modes & 0xF0) == USER_MODES_MARKER) {
         game_mode        = modes & USER_MODE_GAME;
         game_snap_before = modes & USER_MODE_SNAP_BEFORE;
+        bar_mode         = (modes >> USER_MODE_BAR_SHIFT) & 0x03;
+        if (bar_mode > BAR_LAST || kitt_mode) bar_mode = BAR_NONE;
     }
+#ifdef WAKE_DEBUG
+    wake_debug_boot();
+#endif
     boot_anim_active = true;
     boot_anim_timer  = timer_read32();
 }
@@ -389,6 +516,9 @@ void keyboard_post_init_user(void) {
 // The board's nut65.c already owns process_record_user, so hook in one step
 // earlier. Runs before the board's RGB-record and Fn-row handling.
 bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
+#ifdef WAKE_DEBUG
+    wake_debug_key(record);
+#endif
     switch (keycode) {
         case SNAP_TOG:
             if (record->event.pressed) {
@@ -438,8 +568,12 @@ bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
 bool rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max) {
     if (boot_anim_active) {
         boot_anim_render();
-    } else if (kitt_mode && !nut65_rl_music()) {
-        kitt_render(kitt_hues[kitt_mode - 1], kitt_speed_pct[kitt_speed], timer_elapsed32(kitt_timer));
+    } else if (!nut65_rl_music()) {
+        if (kitt_mode) {
+            kitt_render(kitt_hues[kitt_mode - 1], kitt_speed_pct[kitt_speed], timer_elapsed32(kitt_timer));
+        } else if (bar_mode == BAR_WPM) {
+            wpm_render();
+        }
     }
     if (game_mode) {
         rgb_matrix_set_color(LED_INDEX_LGUI, 0xFF, 0x00, 0x00);

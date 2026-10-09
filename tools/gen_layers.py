@@ -33,6 +33,9 @@ OVERRIDES = {
     # transparent, which made layer 4's QK_BOOT (Fn+RShift+Esc) unreachable.
     (1, 3, 12): "MO(4)",
     (3, 3, 12): "MO(4)",
+    # Fn+RShift+Backspace, held 3 s: the board's factory reset. Wipes the VIA
+    # layout back to this keymap, which matters now that flashing keeps it.
+    (4, 0, 13): "EE_CLR",
 }
 
 
