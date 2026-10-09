@@ -8,7 +8,7 @@ WPM_ENABLE = yes
 # which build_keyboard.mk reads before it includes this file.
 VERSION_H_FLAGS += --skip-all
 
-# Temporary wake-from-sleep event log: make leku/nut65:snaptap WAKE_DEBUG=yes
+# Temporary wake-from-sleep event log: make leku/nut65:socd WAKE_DEBUG=yes
 ifeq ($(strip $(WAKE_DEBUG)), yes)
     SRC += wake_debug.c
     OPT_DEFS += -DWAKE_DEBUG

@@ -2,7 +2,7 @@
 
 VIA stores each layer in matrix order (rows * cols); QMK's LAYOUT macro takes the
 82 physical keys in keyboard.json order, so we remap through that list.
-Usage: python gen_layers.py <via_layout.json> <keyboard.json> > keymap/snaptap/layers.inc
+Usage: python gen_layers.py <via_layout.json> <keyboard.json> > keymap/socd/layers.inc
 """
 import json
 import sys
@@ -17,10 +17,10 @@ RENAMES = {
 }
 
 # Extra bindings layered on top of the saved layout: (layer, row, col) -> keycode.
-# Fn+G toggles Snap Tap on both the Windows (1) and Mac (3) Fn layers.
+# Fn+G toggles SOCD on both the Windows (1) and Mac (3) Fn layers.
 OVERRIDES = {
-    (1, 2, 5): "SNAP_TOG",
-    (3, 2, 5): "SNAP_TOG",
+    (1, 2, 5): "SOCD_TOG",
+    (3, 2, 5): "SOCD_TOG",
     # Fn+, / Fn+. slow down / speed up the Knight Rider light bar.
     (1, 3, 9): "KITT_SLOW",
     (3, 3, 9): "KITT_SLOW",

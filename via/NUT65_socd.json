@@ -405,9 +405,9 @@
       "shortName": "EX_RATE"
     },
     {
-      "name": "Snap Tap toggle",
-      "title": "Snap Tap (A/D last-input priority) on/off",
-      "shortName": "SNAP"
+      "name": "SOCD toggle",
+      "title": "SOCD (A/D last-input priority) on/off",
+      "shortName": "SOCD"
     },
     {
       "name": "Knight Rider slower",
@@ -421,7 +421,7 @@
     },
     {
       "name": "Game mode",
-      "title": "Game mode: Left Win = Fn, Right Alt = Win, Snap Tap on",
+      "title": "Game mode: Left Win = Fn, Right Alt = Win, SOCD on",
       "shortName": "GAME"
     }
   ],

@@ -5,7 +5,7 @@
 
 // The board reserves the user EEPROM datablock for RGB-record data and its own
 // settings (keyboards/leku/nut65/config.h). Grow it by three bytes for the
-// keymap's own settings: flags (Snap Tap, Knight Rider variant), Knight Rider
+// keymap's own settings: flags (SOCD, Knight Rider variant), Knight Rider
 // speed, and modes (game mode). The board's eeconfig_init_user_datablock()
 // only writes the RGB-record part, so these bytes are ours alone.
 #undef EECONFIG_USER_DATA_SIZE

@@ -1,7 +1,7 @@
-"""Build the Vial keymaps from the shared Snap Tap keymap sources.
+"""Build the Vial keymaps from the shared SOCD keymap sources.
 
 keymap.c, layers.inc and rgb_matrix_user.inc are shared with the VIA build
-(keymap/snaptap). Vial only adds a few config.h lines, its own rules.mk, and
+(keymap/socd). Vial only adds a few config.h lines, its own rules.mk, and
 vial.json (the VIA definition, which Vial reads as-is). Two keymaps come out:
 
   vial           Every lighting effect and light-bar mode, plus KITT Sweep.
@@ -16,7 +16,7 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent.parent
-SRC = HERE / 'keymap' / 'snaptap'
+SRC = HERE / 'keymap' / 'socd'
 
 RULES = """VIA_ENABLE = yes
 VIAL_ENABLE = yes
@@ -72,7 +72,7 @@ def write_keymap(dest, extra_config=''):
     dest.mkdir(parents=True, exist_ok=True)
     for name in ('keymap.c', 'layers.inc', 'rgb_matrix_user.inc'):
         write_if_changed(dest / name, (SRC / name).read_text().replace('\r\n', '\n'))
-    definition = json.loads((HERE / 'via' / 'NUT65_snaptap.json').read_text())
+    definition = json.loads((HERE / 'via' / 'NUT65_socd.json').read_text())
     definition['lighting'] = 'vialrgb'
     write_if_changed(dest / 'vial.json', json.dumps(definition, indent=2) + '\n')
     write_if_changed(dest / 'rules.mk', RULES)

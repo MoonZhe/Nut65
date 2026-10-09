@@ -1,9 +1,9 @@
 // Copyright 2024 sdk66 (@sdk66)
 // SPDX-License-Identifier: GPL-2.0-or-later
 //
-// Snap Tap keymap: the stock Nut65 keymap with the owner's VIA layout baked in
+// SOCD keymap: the stock Nut65 keymap with the owner's VIA layout baked in
 // as the default, plus:
-//   - Fn+G: last-input-priority SOCD on A/D (Razer "Snap Tap"). Logic follows
+//   - Fn+G: SOCD (last-input priority) on A/D. Logic follows
 //     Pascal Getreuer's SOCD Cleaner (SOCD_CLEANER_LAST),
 //     https://getreuer.info/posts/keyboards/socd-cleaner.
 //   - 2008-style KITT scanner on the light bar, in six colours, as part of
@@ -12,8 +12,8 @@
 //     Fn+, / Fn+. = slower / faster. Plays one fast cycle at power-on.
 //   - A typing speed meter on the light bar, after KITT in the Fn+Insert
 //     cycle.
-//   - Fn+Left Win: game mode. Left Win acts as Fn and Right Alt as Win, Snap
-//     Tap turns on, and the Left Win key glows red.
+//   - Fn+Left Win: game mode. Left Win acts as Fn and Right Alt as Win, SOCD
+//     turns on, and the Left Win key glows red.
 
 #include QMK_KEYBOARD_H
 #include "rgb_record/rgb_record.h"
@@ -25,7 +25,7 @@
 #endif
 
 // QK_KB_0..29 are taken by the board's keycodes in keyboard.json.
-#define SNAP_TOG QK_KB_30 // VIA CUSTOM(30)
+#define SOCD_TOG QK_KB_30 // VIA CUSTOM(30)
 #define KITT_SLOW QK_KB_31         // VIA CUSTOM(31)
 #define KITT_FAST (QK_KB_31 + 1)  // VIA CUSTOM(32)
 #define GAME_TOG  (QK_KB_31 + 2)  // VIA CUSTOM(33)
@@ -79,25 +79,25 @@ const uint16_t PROGMEM encoder_map[][NUM_ENCODERS][NUM_DIRECTIONS] = {
 // ---------------------------------------------------------------------------
 // Persistent flags: one byte at the end of the user EEPROM datablock (see
 // config.h). High nibble is a marker so uninitialised EEPROM reads as "all off";
-// bit 0 = Snap Tap, bits 1..3 = Knight Rider variant (0 = off).
+// bit 0 = SOCD, bits 1..3 = Knight Rider variant (0 = off).
 
 #define USER_FLAGS_MARKER 0xA0
-#define USER_FLAG_SNAPTAP 0x01
+#define USER_FLAG_SOCD 0x01
 #define USER_FLAGS_KITT_SHIFT 1
 
-static bool    snaptap_enabled = false;
+static bool    socd_enabled = false;
 static uint8_t kitt_mode       = 0; // 0 = off, else 1..KITT_VARIANTS.
 
 static void user_flags_save(void) {
     uint8_t flags = USER_FLAGS_MARKER | (kitt_mode << USER_FLAGS_KITT_SHIFT);
-    if (snaptap_enabled) flags |= USER_FLAG_SNAPTAP;
+    if (socd_enabled) flags |= USER_FLAG_SOCD;
     eeprom_update_byte(USER_FLAGS_EEPROM_ADDR, flags);
 }
 
 // ---------------------------------------------------------------------------
-// Snap Tap (SOCD last input priority with reactivation)
+// SOCD (last input priority with reactivation)
 
-#define SNAPTAP_FLASH_MS 1500
+#define SOCD_FLASH_MS 1500
 #define LED_INDEX_A 34
 #define LED_INDEX_D 36
 
@@ -110,7 +110,7 @@ static socd_pair_t socd_pairs[] = {
     {.keys = {KC_A, KC_D}},
 };
 
-static uint32_t snaptap_flash_timer = 0;
+static uint32_t socd_flash_timer = 0;
 
 // Pressing a key releases its held opposite; releasing it re-presses the
 // opposite if that is still held. The current key itself is left to normal
@@ -124,7 +124,7 @@ static void process_socd(uint16_t keycode, keyrecord_t *record, socd_pair_t *pai
 
     pair->held[i] = record->event.pressed;
 
-    if (snaptap_enabled && pair->held[opposing]) {
+    if (socd_enabled && pair->held[opposing]) {
         if (record->event.pressed) {
             del_key(pair->keys[opposing]);
         } else {
@@ -488,25 +488,25 @@ static void boot_keys_render(void) {
 }
 
 // ---------------------------------------------------------------------------
-// Game mode: Left Win acts as Fn and Right Alt as Win, Snap Tap turns on
+// Game mode: Left Win acts as Fn and Right Alt as Win, SOCD turns on
 // (restored on exit), and the Left Win key glows red. Saved in its own byte
-// with a 0xB0 marker: bit 0 = game mode, bit 1 = Snap Tap before game mode.
+// with a 0xB0 marker: bit 0 = game mode, bit 1 = SOCD before game mode.
 
 #define USER_MODES_MARKER     0xB0
 #define USER_MODE_GAME        0x01
-#define USER_MODE_SNAP_BEFORE 0x02
+#define USER_MODE_SOCD_BEFORE 0x02
 #define USER_MODE_BAR_SHIFT   2 // Bits 2..3: light-bar mode (BAR_*).
 #define LED_INDEX_LGUI        8
 
 static bool    game_mode        = false;
-static bool    game_snap_before = false;
+static bool    game_socd_before = false;
 static uint8_t game_fn_layer    = 0; // Fn layer Left Win switched on, 0 = none.
 static bool    game_ralt_as_gui = false;
 
 static void user_modes_save(void) {
     uint8_t modes = USER_MODES_MARKER;
     if (game_mode) modes |= USER_MODE_GAME;
-    if (game_snap_before) modes |= USER_MODE_SNAP_BEFORE;
+    if (game_socd_before) modes |= USER_MODE_SOCD_BEFORE;
     modes |= bar_mode << USER_MODE_BAR_SHIFT;
     eeprom_update_byte(USER_MODES_EEPROM_ADDR, modes);
 }
@@ -514,10 +514,10 @@ static void user_modes_save(void) {
 static void game_mode_set(bool on) {
     if (on == game_mode) return;
     if (on) {
-        game_snap_before = snaptap_enabled;
-        snaptap_enabled  = true;
+        game_socd_before = socd_enabled;
+        socd_enabled  = true;
     } else {
-        snaptap_enabled = game_snap_before;
+        socd_enabled = game_socd_before;
     }
     game_mode = on;
     user_flags_save();
@@ -644,14 +644,14 @@ void suspend_wakeup_init_user(void) {
 
 // ---------------------------------------------------------------------------
 
-// Settings reset (fresh EEPROM or factory reset): scanner on in red, Snap Tap
+// Settings reset (fresh EEPROM or factory reset): scanner on in red, SOCD
 // and game mode off, default speed.
 void eeconfig_init_user(void) {
-    snaptap_enabled  = false;
+    socd_enabled  = false;
     kitt_mode        = KITT_DEFAULT_VARIANT;
     kitt_speed       = KITT_DEFAULT_SPEED;
     game_mode        = false;
-    game_snap_before = false;
+    game_socd_before = false;
     bar_mode         = BAR_NONE;
     user_flags_save();
     eeprom_update_byte(USER_KITT_SPEED_EEPROM_ADDR, kitt_speed);
@@ -677,7 +677,7 @@ void via_init_kb(void) {
 void keyboard_post_init_user(void) {
     uint8_t flags = eeprom_read_byte(USER_FLAGS_EEPROM_ADDR);
     if ((flags & 0xF0) == USER_FLAGS_MARKER) {
-        snaptap_enabled = flags & USER_FLAG_SNAPTAP;
+        socd_enabled = flags & USER_FLAG_SOCD;
         kitt_mode       = (flags >> USER_FLAGS_KITT_SHIFT) & 0x07;
         if (kitt_mode > KITT_VARIANTS) kitt_mode = 0;
     } else {
@@ -688,7 +688,7 @@ void keyboard_post_init_user(void) {
     uint8_t modes = eeprom_read_byte(USER_MODES_EEPROM_ADDR);
     if ((modes & 0xF0) == USER_MODES_MARKER) {
         game_mode        = modes & USER_MODE_GAME;
-        game_snap_before = modes & USER_MODE_SNAP_BEFORE;
+        game_socd_before = modes & USER_MODE_SOCD_BEFORE;
         bar_mode         = (modes >> USER_MODE_BAR_SHIFT) & 0x03;
         kitt_timer       = timer_read32();
         if (bar_mode > BAR_LAST || kitt_mode) bar_mode = BAR_NONE;
@@ -728,11 +728,11 @@ bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
     wake_debug_key(record);
 #endif
     switch (keycode) {
-        case SNAP_TOG:
+        case SOCD_TOG:
             if (record->event.pressed) {
-                snaptap_enabled = !snaptap_enabled;
+                socd_enabled = !socd_enabled;
                 user_flags_save();
-                snaptap_flash_timer = timer_read32() | 1; // Never 0, which means "not flashing".
+                socd_flash_timer = timer_read32() | 1; // Never 0, which means "not flashing".
             }
             return false;
         case KITT_SLOW:
@@ -807,15 +807,15 @@ bool rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max) {
             speed_flash_timer = 0;
         }
     }
-    // Flash A and D after a Snap Tap toggle: green = on, red = off.
-    if (snaptap_flash_timer) {
-        if (timer_elapsed32(snaptap_flash_timer) < SNAPTAP_FLASH_MS) {
-            uint8_t r = snaptap_enabled ? 0x00 : 0xFF;
-            uint8_t g = snaptap_enabled ? 0xFF : 0x00;
+    // Flash A and D after a SOCD toggle: green = on, red = off.
+    if (socd_flash_timer) {
+        if (timer_elapsed32(socd_flash_timer) < SOCD_FLASH_MS) {
+            uint8_t r = socd_enabled ? 0x00 : 0xFF;
+            uint8_t g = socd_enabled ? 0xFF : 0x00;
             rgb_matrix_set_color(LED_INDEX_A, r, g, 0x00);
             rgb_matrix_set_color(LED_INDEX_D, r, g, 0x00);
         } else {
-            snaptap_flash_timer = 0;
+            socd_flash_timer = 0;
         }
     }
     return true;

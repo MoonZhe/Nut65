@@ -1,6 +1,6 @@
-# KITT scanner + Snap Tap for the Weikav Nut65
+# KITT scanner + SOCD for the Weikav Nut65
 
-A custom QMK firmware for the **Weikav / LEKU Nut65** (65%, tri-mode). It turns the keyboard's front light bar into a **KITT scanner**, in both the 2008 KI3000 style and the original 1982 style, and can carry the scanner across the keys. It also adds **Razer-style Snap Tap** and a one-key **game mode** for gaming. It runs on **[Vial](https://get.vial.today/)**, so you can remap keys and set up tap dance, combos, key overrides and macros live, without reflashing. Wired, Bluetooth and 2.4 GHz all still work.
+A custom QMK firmware for the **Weikav / LEKU Nut65** (65%, tri-mode). It turns the keyboard's front light bar into a **KITT scanner**, in both the 2008 KI3000 style and the original 1982 style, and can carry the scanner across the keys. It also adds **SOCD** (last-input priority on A/D) and a one-key **game mode** for gaming. It runs on **[Vial](https://get.vial.today/)**, so you can remap keys and set up tap dance, combos, key overrides and macros live, without reflashing. Wired, Bluetooth and 2.4 GHz all still work.
 
 **[Download the latest release](https://github.com/MoonZhe/Nut65/releases/latest)**, then see [Flashing](#flashing).
 
@@ -55,7 +55,7 @@ Four key effects tie the keys to the light bar. They come at the end of the **Fn
 | --- | --- | --- |
 | **Vial** (`leku_nut65_vial.bin`) | Cycle Left Right, Cycle Up Down, Rainbow Moving Chevron, Cycle Out In, Cycle Out In Dual, Cycle Pinwheel, Cycle Spiral, Dual Beacon, Rainbow Beacon, Rainbow Pinwheels, Raindrops, Jellybean Raindrops, Pixel Flow, Digital Rain, Solid Reactive Simple, Solid Reactive Cross, Splash, Alphas Mods, Gradient Left Right, Breathing, Band Sat, Band Val, Band Pinwheel Val, Band Spiral Val, Cycle All, then **KITT Sweep, KITT 1982, KITT Reactive, Bar Echo** | All 44 QMK effects built in (below), plus **Direct Control** (see [Vial](#vial)) |
 | **Personal** (`leku_nut65_vial_personal.bin`) | Solid Reactive Simple, **KITT Reactive, KITT Sweep, KITT 1982, Bar Echo**, Solid Color, Breathing, Typing Heatmap | Solid Color, Breathing, Typing Heatmap, Solid Reactive Simple, Direct Control |
-| **VIA** (`leku_nut65_snaptap.bin`) | The stock list (the Vial build's list without the four custom effects) | VIA's lighting menu |
+| **VIA** (`leku_nut65_socd.bin`) | The same as the Vial build | VIA's lighting menu |
 
 The 44 QMK effects in the Vial build: Solid Color, Alphas Mods, Gradient Up Down, Gradient Left Right, Breathing, Band Sat, Band Val, Band Pinwheel Sat, Band Pinwheel Val, Band Spiral Sat, Band Spiral Val, Cycle All, Cycle Left Right, Cycle Up Down, Rainbow Moving Chevron, Cycle Out In, Cycle Out In Dual, Cycle Pinwheel, Cycle Spiral, Dual Beacon, Rainbow Beacon, Rainbow Pinwheels, Raindrops, Jellybean Raindrops, Hue Breathing, Hue Pendulum, Hue Wave, Pixel Rain, Pixel Flow, Pixel Fractal, Typing Heatmap, Digital Rain, Solid Reactive Simple, Solid Reactive, Solid Reactive Wide, Solid Reactive Multiwide, Solid Reactive Cross, Solid Reactive Multicross, Solid Reactive Nexus, Solid Reactive Multinexus, Splash, Multisplash, Solid Splash, Solid Multisplash.
 
@@ -78,15 +78,15 @@ The default after a factory reset is **Solid Reactive Simple** in red: keys stay
 | **Fn + \** | Cycles the key effects (see [Lighting](#lighting)). |
 | **Fn + ,** / **Fn + .** | KITT slower / faster (both scanners). The key blinks white for each step and red ×3 at the slowest or fastest speed. Remembered. |
 | **Fn + PgUp / PgDn** | Light-bar brightness. The scanners follow it. |
-| **Fn + G** | Snap Tap on A/D on or off. A and D flash green (on) or red (off). Remembered. |
-| **Fn + Left Win** | Game mode on or off. Left Win acts as Fn, Right Alt acts as Win, Snap Tap turns on, and the Left Win key glows red. Exit with Right Fn + Left Win. Remembered. |
+| **Fn + G** | SOCD on A/D on or off. A and D flash green (on) or red (off). Remembered. |
+| **Fn + Left Win** | Game mode on or off. Left Win acts as Fn, Right Alt acts as Win, SOCD turns on, and the Left Win key glows red. Exit with Right Fn + Left Win. Remembered. |
 | **Fn + D** (hold 3 s) | Debounce: 1 ms low latency (D blinks red) or 8 ms (D blinks white, the default). Remembered. |
 | **Fn + Right Shift + Esc** | Bootloader (DFU), for flashing. Settings are kept. |
 | **Fn + Right Shift + Backspace** (hold 3 s) | Factory reset: back to the layout compiled into the firmware, and the default lighting (red Solid Reactive Simple keys, red KITT scanner). |
 | **Esc + Enter** (hold) | Vial unlock, when Vial asks for it. |
 
-### Snap Tap
-This is last-input priority on **A** and **D**: pressing D while A is held releases A, and letting go of D re-presses A if it's still held. It's the same behaviour as Razer's Snap Tap and Wooting's SOCD. Turn it off for **CS2 on Valve servers**, which kick players for hardware SOCD.
+### SOCD
+SOCD (simultaneous opposing cardinal directions) handling with last-input priority on **A** and **D**: pressing D while A is held releases A, and letting go of D re-presses A if it's still held. Turn it off for **CS2 on Valve servers**, which kick players for hardware SOCD.
 
 ### Typing-speed meter
 A light-bar mode in the Fn + Insert cycle. The bar fills outwards from the middle as your typing speed rises, from green through yellow to red, and is full at 120 WPM (`WPM_FULL`). A white marker holds your peak for 1.5 s, then falls back. The centre glows faintly while you're idle.
@@ -95,7 +95,7 @@ A light-bar mode in the Fn + Insert cycle. The bar fills outwards from the middl
 A single toggle for gaming, with no duplicate layers:
 - **Left Win acts as Fn**, so Win + 1 gives F1 and the Windows key can't knock you out of a game.
 - **Right Alt acts as Win** for when you do need it.
-- **Snap Tap turns on.** It goes back to its previous setting when you leave game mode, and Fn + G still toggles it inside game mode.
+- **SOCD turns on.** It goes back to its previous setting when you leave game mode, and Fn + G still toggles it inside game mode.
 - **The Left Win key glows red** while game mode is on.
 
 ## Firmware
@@ -106,7 +106,7 @@ Download from **[Releases](https://github.com/MoonZhe/Nut65/releases/latest)**. 
 | --- | --- |
 | `firmware/vial/leku_nut65_vial.bin` | **Recommended.** Vial, every lighting effect, everything above. |
 | `firmware/personal/leku_nut65_vial_personal.bin` | My own build: the same, with trimmed lighting. Keys: Solid Reactive Simple, KITT Reactive, KITT Sweep, KITT 1982, Bar Echo, Solid Color, Breathing, Typing Heatmap. Bar: solid colours, KITT, WPM, off. |
-| `firmware/leku_nut65_snaptap.bin` | VIA build on the OEM source, the earlier version of this project. It has the light-bar scanners, Snap Tap and game mode, but not Vial or the new key effects (the OEM board's Fn + \ list can't reach them). |
+| `firmware/leku_nut65_socd.bin` | VIA build on the OEM source, the earlier version of this project. It has the light-bar scanners, the custom key effects, SOCD and game mode, but not Vial. |
 | `firmware/leku_nut65_default.bin` | Unmodified OEM source, to go back to stock. |
 
 ## Flashing
@@ -124,7 +124,7 @@ Download from **[Releases](https://github.com/MoonZhe/Nut65/releases/latest)**. 
 5. The first flash over the stock firmware, or over an older build of this one, resets all settings. The keyboard then boots into the layout compiled into the firmware. **That layout is mine** (see `nut65.layout.json`). After that, flashing keeps your Vial layout, macros, tap dances, combos and lighting. Hold **Fn + Right Shift + Backspace** for 3 s to go back to the compiled layout.
 
 ## Vial
-Open [Vial](https://get.vial.today/) (or [vial.rocks](https://vial.rocks/) in Chrome). It works over USB and 2.4 GHz. The new keys show up by name: Snap Tap toggle, Knight Rider slower and faster, and Game mode.
+Open [Vial](https://get.vial.today/) (or [vial.rocks](https://vial.rocks/) in Chrome). It works over USB and 2.4 GHz. The new keys show up by name: SOCD toggle, Knight Rider slower and faster, and Game mode.
 
 **Direct Control** in the Lighting tab hands the key LEDs to PC software such as OpenRGB or SignalRGB. Vial itself doesn't drive them in that mode, so the keys stay dark. The light bar stays under the keyboard's control.
 
@@ -144,7 +144,7 @@ python ../Nut65/tools/sync_vial_keymap.py keyboards/leku/nut65
 bash ../Nut65/tools/build_vial.sh            # builds vial and vial_personal into .build/
 ```
 
-`sync_vial_keymap.py` generates both Vial keymaps from the shared source in `keymap/snaptap`. `build_vial.sh` calls QMK's inner makefile directly so that `-j` reaches the compiler, which makes it several times faster on Windows.
+`sync_vial_keymap.py` generates both Vial keymaps from the shared source in `keymap/socd`. `build_vial.sh` calls QMK's inner makefile directly so that `-j` reaches the compiler, which makes it several times faster on Windows.
 
 ### VIA build (OEM source)
 ```
@@ -153,18 +153,18 @@ cd qmk_firmware
 git checkout 3164abd3            # OEM tree this was built and tested against
 git submodule update --init --depth 1 lib/chibios lib/chibios-contrib lib/printf lib/lufa lib/vusb
 git apply ../Nut65/patches/nut65-indicators-user-hook.patch
-cp -r ../Nut65/keymap/snaptap keyboards/leku/nut65/keymaps/
-make leku/nut65:snaptap
+cp -r ../Nut65/keymap/socd keyboards/leku/nut65/keymaps/
+make leku/nut65:socd
 ```
 
 ### Your own layout and tuning
 To use your own layout as the default, export it from VIA or Vial and regenerate the layers:
 
 ```
-python tools/gen_layers.py your.layout.json <qmk>/keyboards/leku/nut65/keyboard.json > keymap/snaptap/layers.inc
+python tools/gen_layers.py your.layout.json <qmk>/keyboards/leku/nut65/keyboard.json > keymap/socd/layers.inc
 ```
 
-To tune the scanners, edit `keymap/snaptap/keymap.c`:
+To tune the scanners, edit `keymap/socd/keymap.c`:
 
 | Setting | What it changes |
 | --- | --- |
@@ -182,7 +182,7 @@ Afterwards, `python tools/render_preview.py` re-renders the GIFs above from the 
 | Path | What |
 | --- | --- |
 | `firmware/` | Ready-to-flash builds (see above) |
-| `keymap/snaptap/` | Keymap source shared by the Vial and VIA builds: Snap Tap, game mode, the scanners, the key effects (`rgb_matrix_user.inc`), the boot animation and the layout |
+| `keymap/socd/` | Keymap source shared by the Vial and VIA builds: SOCD, game mode, the scanners, the key effects (`rgb_matrix_user.inc`), the boot animation and the layout |
 | `vial/` | The Nut65 board and its wireless stack, ported to vial-qmk |
 | `patches/` | `nut65-indicators-user-hook.patch` for the OEM tree; two QMK bug fixes for vial-qmk; the wake-debug log |
 | `via/` | Key definitions (VIA design file, also used to generate `vial.json`), plus the matching layout |
@@ -209,11 +209,11 @@ Afterwards, `python tools/render_preview.py` re-renders the GIFs above from the 
 ## Credits
 - Weikav / [hangshengkeji](https://github.com/hangshengkeji/qmk_firmware) for publishing the Nut65 QMK source.
 - [Vial](https://get.vial.today/) and [vial-qmk](https://github.com/vial-kb/vial-qmk).
-- [Pascal Getreuer's SOCD Cleaner](https://getreuer.info/posts/keyboards/socd-cleaner/index.html), the basis of the Snap Tap logic.
+- [Pascal Getreuer's SOCD Cleaner](https://getreuer.info/posts/keyboards/socd-cleaner/index.html), the basis of the SOCD logic.
 - [Knight Research](https://www.youtube.com/watch?v=Lz5OhpBDkkE) for the KI3000 scanner replica the 2008 animation was measured from.
 - [bhctsntrk/nut65-signalrgb](https://github.com/bhctsntrk/nut65-signalrgb) for documenting Nut65 flashing and recovery.
 
 ## License
 GPL-2.0-or-later, the same as QMK. See [LICENSE](LICENSE).
 
-<sub>A fan project. Not affiliated with or endorsed by Weikav, Razer, or the owners of Knight Rider. "Snap Tap" is Razer's name for the feature; KITT and Knight Rider belong to their respective owners.</sub>
+<sub>A fan project. Not affiliated with or endorsed by Weikav or the owners of Knight Rider. KITT and Knight Rider belong to their respective owners.</sub>

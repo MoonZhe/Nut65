@@ -8,7 +8,7 @@
 > - Two upstream QMK bugs turned up and are patched in `patches/`: the reactive effects' offset overflow and Pixel Fractal writing to `NO_LED`.
 > - See the README's "Bugs fixed along the way" for the details.
 
-Goal: use Vial instead of VIA, so tap-hold keys, combos, key overrides, tap dance and macros can be changed live in the Vial app without reflashing. Snap Tap, KITT, the WPM meter, game mode, wireless and the light bar all keep working.
+Goal: use Vial instead of VIA, so tap-hold keys, combos, key overrides, tap dance and macros can be changed live in the Vial app without reflashing. SOCD, KITT, the WPM meter, game mode, wireless and the light bar all keep working.
 
 ## What we're starting from (checked 2026-10-09)
 - **The OEM tree** (hangshengkeji/qmk_firmware) is QMK from about Aug 2024 (0.26). Its git history is squashed into one commit, so the exact base can't be confirmed.
@@ -52,14 +52,14 @@ Move the **board** onto vial-qmk (option B) rather than moving Vial into the OEM
 - Confirm the board's `via_command_kb` (in `wls/wls.c`) passes Vial's `0xFE` commands through instead of swallowing them.
 
 ### 5. Port our features
-- Bring over the Snap Tap / KITT / WPM / game-mode keymap code and the fixed build date.
+- Bring over the SOCD / KITT / WPM / game-mode keymap code and the fixed build date.
 - Keep the wake fix: `suspend_wakeup_init_user()` calls `lpwr_set_timeout_manual(false)`.
 - `md_raw.h` is force-included and macro-redirects `raw_hid_send`, so check that Vial's raw-HID replies still reach the host over USB.
-- Declare SNAP, KITT-/+ and GAME as `customKeycodes` in `vial.json` so they show by name in Vial.
+- Declare SOCD, KITT-/+ and GAME as `customKeycodes` in `vial.json` so they show by name in Vial.
 
 ### 6. Nice to have
 - Vial working over 2.4G through the dongle (raw HID is already routed in `md_raw.c`); wired-only Vial is fine.
-- Move parts of the Snap Tap settings into Vial's QMK Settings tab.
+- Move parts of the SOCD settings into Vial's QMK Settings tab.
 
 ## Effort and risk
 - Phases 1, 4 and 5 are routine.

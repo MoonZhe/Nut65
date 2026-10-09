@@ -1,7 +1,7 @@
 """Render animated GIF previews of the KITT light-bar scanner.
 
 Uses the same integer maths as kitt_render() and kitt82_begin() (the 1982
-scanner) in keymap/snaptap/keymap.c, so the
+scanner) in keymap/socd/keymap.c, so the
 preview matches the keyboard frame for frame (the real bar is dimmer: it follows
 the Fn+PgUp/PgDn light-bar brightness).
 
@@ -14,7 +14,7 @@ import sys
 
 from PIL import Image, ImageDraw, ImageFilter
 
-# --- Firmware constants (keymap/snaptap/keymap.c) ---------------------------
+# --- Firmware constants (keymap/socd/keymap.c) ---------------------------
 LEDS, HALF, SOFT = 80, 40, 8
 TRAVEL = (HALF + SOFT) * 256
 FLOOD_MS, DRAIN_MS, TRANSITION_MS = 1200, 1800, -300

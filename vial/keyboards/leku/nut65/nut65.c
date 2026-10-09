@@ -1854,7 +1854,7 @@ void hs_rgb_blink_hook_user(void) {
     }    
 }
 
-// Read-only accessors for keymaps (Snap Tap / Knight Rider keymap).
+// Read-only accessors for keymaps (SOCD / Knight Rider keymap).
 uint8_t nut65_rl_mode(void) { return confinfo.rgb_light_mode; }
 uint8_t nut65_rl_brightness(void) { return rl_rgb_brightness_val + confinfo.rl_val * 5; }
 bool nut65_rl_music(void) { return confinfo.hs_music_cut; }

@@ -9,7 +9,7 @@
     [1] = LAYOUT(
         KC_GRV,    KC_F1,     KC_F2,     KC_F3,     KC_F4,     KC_F5,     KC_F6,     KC_F7,     KC_F8,     KC_F9,     KC_F10,    KC_F11,    KC_F12,    KC_DEL,    RL_MOD,
         KC_GRV,    KC_BT1,    KC_BT2,    KC_BT3,    KC_2G4,    KC_USB,    _______,   _______,   _______,   _______,   KC_PSCR,   KC_SCRL,   KC_PAUS,   RGB_MOD,   MUS_CUT,
-        _______,   _______,   _______,   DEB_TOG,   _______,   SNAP_TOG,  _______,   _______,   _______,   _______,   KC_HOME,   KC_END,    RGB_HUI,   RL_VAI,
+        _______,   _______,   _______,   DEB_TOG,   _______,   SOCD_TOG,  _______,   _______,   _______,   _______,   KC_HOME,   KC_END,    RGB_HUI,   RL_VAI,
         _______,   _______,   _______,   _______,   _______,   _______,   NK_TOGG,   SYS_CUT,   KITT_SLOW, KITT_FAST, _______,   MO(4),     RGB_VAI,   RL_VAD,
         LED_TOG,   GAME_TOG,  HS_FREQ,   HS_BATQ,   LED_TOG,   _______,   RGB_SPD,   RGB_VAD,   RGB_SPI,
         KC_NO,     KC_NO,     KC_NO,     KC_NO,     KC_NO,     KC_NO,     KC_NO,     KC_NO,     KC_NO,     KC_NO,     KC_NO,     KC_NO,     KC_NO,     KC_NO,     KC_NO
@@ -25,7 +25,7 @@
     [3] = LAYOUT(
         KC_GRV,    KC_F1,     KC_F2,     KC_F3,     KC_F4,     KC_F5,     KC_F6,     KC_F7,     KC_F8,     KC_F9,     KC_F10,    KC_F11,    KC_F12,    KC_DEL,    RL_MOD,
         KC_GRV,    KC_BT1,    KC_BT2,    KC_BT3,    KC_2G4,    KC_USB,    _______,   _______,   _______,   _______,   KC_PSCR,   KC_SCRL,   KC_PAUS,   RGB_MOD,   MUS_CUT,
-        _______,   _______,   _______,   DEB_TOG,   _______,   SNAP_TOG,  _______,   _______,   _______,   _______,   KC_HOME,   KC_END,    RGB_HUI,   RL_VAI,
+        _______,   _______,   _______,   DEB_TOG,   _______,   SOCD_TOG,  _______,   _______,   _______,   _______,   KC_HOME,   KC_END,    RGB_HUI,   RL_VAI,
         _______,   _______,   _______,   _______,   _______,   _______,   NK_TOGG,   SYS_CUT,   KITT_SLOW, KITT_FAST, _______,   MO(4),     RGB_VAI,   RL_VAD,
         LED_TOG,   GAME_TOG,  HS_FREQ,   HS_BATQ,   LED_TOG,   _______,   RGB_SPD,   RGB_VAD,   RGB_SPI,
         KC_NO,     KC_NO,     KC_NO,     KC_NO,     KC_NO,     KC_NO,     KC_NO,     KC_NO,     KC_NO,     KC_NO,     KC_NO,     KC_NO,     KC_NO,     KC_NO,     KC_NO
