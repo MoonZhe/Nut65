@@ -1,0 +1,88 @@
+diff --git a/keyboards/leku/nut65/wls/wls.c b/keyboards/leku/nut65/wls/wls.c
+index 6a22cc30..2a24ef3b 100644
+--- a/keyboards/leku/nut65/wls/wls.c
++++ b/keyboards/leku/nut65/wls/wls.c
+@@ -90,6 +90,7 @@ bool hs_rgb_blink_hook() {
+     static bool hs_connect = false;
+   
+     if (last_status != *md_getp_state()) {
++        dbg_wake_event(6, *md_getp_state(), last_status);
+         last_status = *md_getp_state();
+         hs_rgb_blink_set_timer(0x00);
+     }
+@@ -375,7 +376,13 @@ void via_custom_value_command_kb(uint8_t *data, uint8_t length) {
+     }
+ }
+ 
++bool dbg_wake_via_command(uint8_t *data, uint8_t length) __attribute__((weak));
++bool dbg_wake_via_command(uint8_t *data, uint8_t length) { return false; }
++
+ bool via_command_kb(uint8_t *data, uint8_t length) {
++    if (dbg_wake_via_command(data, length)) {
++        return true;
++    }
+     
+     hs_rgb_blink_set_timer(timer_read32());
+     
+diff --git a/keyboards/linker/wireless/lowpower.c b/keyboards/linker/wireless/lowpower.c
+index 7df6a31f..0ceb0128 100644
+--- a/keyboards/linker/wireless/lowpower.c
++++ b/keyboards/linker/wireless/lowpower.c
+@@ -39,11 +39,14 @@ void mcu_stop_mode(void);
+ 
+ extern void matrix_init_pins(void);
+ 
++__attribute__((weak)) void dbg_wake_event(uint8_t type, uint8_t a, uint32_t extra) {}
++
+ lpwr_state_t lpwr_get_state(void) {
+     return lpwr_state;
+ }
+ 
+ void lpwr_set_state(lpwr_state_t state) {
++    dbg_wake_event(1, state, (uint32_t)__builtin_return_address(0));
+     lpwr_state = state;
+ }
+ 
+@@ -72,6 +75,7 @@ uint32_t lpwr_timestamp_read(void) {
+ }
+ 
+ void lpwr_set_sleep_wakeupcd(lpwr_wakeupcd_t wakeupcd) {
++    if (wakeupcd != LPWR_WAKEUP_NONE) dbg_wake_event(2, wakeupcd, 0);
+     lpwr_wakeupcd = wakeupcd;
+ }
+ 
+@@ -101,6 +105,7 @@ void lpwr_enter_stop(void) {
+ }
+ 
+ void lpwr_set_timeout_manual(bool enable) {
++    dbg_wake_event(3, enable, (uint32_t)__builtin_return_address(0));
+     manual_timeout = enable;
+ }
+ 
+@@ -110,6 +115,7 @@ bool lpwr_get_timeout_manual(void) {
+ 
+ // 2.4g mode, host state
+ void md_receive_host_cb(bool resume) {
++    dbg_wake_event(4, resume, lpwr_get_state());
+ 
+     if (resume) {
+         if (lpwr_get_state() != LPWR_NORMAL) {
+@@ -143,6 +149,7 @@ bool lpwr_is_allow_timeout(void) {
+     }
+ 
+     if (manual_timeout || (timeout && (last_input_activity_elapsed() >= timeout))) {
++        dbg_wake_event(5, manual_timeout, last_input_activity_elapsed());
+         manual_timeout = false;
+         return true;
+     }
+diff --git a/keyboards/linker/wireless/lowpower.h b/keyboards/linker/wireless/lowpower.h
+index e7d60a41..f062e7a6 100644
+--- a/keyboards/linker/wireless/lowpower.h
++++ b/keyboards/linker/wireless/lowpower.h
+@@ -37,3 +37,6 @@ bool lpwr_get_timeout_manual(void);
+ void lpwr_set_state(lpwr_state_t state);
+ void lpwr_set_mode(lpwr_mode_t mode);
+ void lpwr_task(void);
++
++// Wake debug: weak no-op, implemented by a debug keymap.
++void dbg_wake_event(uint8_t type, uint8_t a, uint32_t extra);

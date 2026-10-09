@@ -1,6 +1,6 @@
 # KITT scanner + Snap Tap for the Weikav Nut65
 
-A custom QMK firmware for the **Weikav / LEKU Nut65** (65%, tri-mode) that turns the keyboard's front light bar into a **2008-style KITT scanner** (Knight Industries Three Thousand), and adds **Razer-style Snap Tap** plus a one-key **game mode** for gaming. VIA keeps working, and wired, Bluetooth and 2.4 GHz all still work.
+A custom QMK firmware for the **Weikav / LEKU Nut65** (65%, tri-mode) that turns the keyboard's front light bar into a **2008-style KITT scanner** (Knight Industries Three Thousand), and adds **Razer-style Snap Tap** plus a one-key **game mode** for gaming. There is also a typing-speed meter for the light bar. VIA keeps working, and wired, Bluetooth and 2.4 GHz all still work.
 
 ![KITT scanner on the Nut65 light bar](docs/kitt-red.gif)
 
@@ -27,16 +27,20 @@ It comes in **red, amber, blue, green, purple and rainbow**, with **5 speeds**:
 
 | Keys | What it does |
 | --- | --- |
-| **Fn + Insert** | Cycles the light bar. After the stock effects and solid colours come KITT red, amber, blue, green, purple and rainbow, then off. Remembered across power cycles. |
+| **Fn + Insert** | Cycles the light bar. After the stock effects and solid colours come KITT red, amber, blue, green, purple and rainbow, then the typing-speed meter, then off. Remembered across power cycles. |
 | **Fn + ,** / **Fn + .** | KITT slower / faster. The key blinks white for each step and red ×3 at the slowest or fastest speed. Remembered. |
 | **Fn + PgUp / PgDn** | Light-bar brightness. The scanner follows it. |
 | **Fn + G** | Snap Tap on A/D on or off. A and D flash green (on) or red (off). Remembered. |
 | **Fn + Left Win** | Game mode on or off. Left Win acts as Fn, Right Alt acts as Win, Snap Tap turns on, and the Left Win key glows red. Exit with Right Fn + Left Win. Remembered. |
 | **Fn + D** (hold 3 s) | Low-latency debounce: 1 ms (D blinks red) or 8 ms (D blinks white, the default). |
 | **Fn + Right Shift + Esc** | Bootloader (DFU), for flashing. |
+| **Fn + Right Shift + Backspace** (hold 3 s) | Factory reset: back to the layout compiled into the firmware, and the default lighting (red Solid Reactive Simple keys, red KITT scanner). |
 
 ### Snap Tap
 This is last-input priority on **A** and **D**: pressing D while A is held releases A, and letting go of D re-presses A if it's still held. It's the same behaviour as Razer's Snap Tap and Wooting's SOCD. Turn it off for **CS2 on Valve servers**, which kick players for hardware SOCD.
+
+### Typing-speed meter
+A light-bar mode in the Fn + Insert cycle. The bar fills outwards from the middle as your typing speed rises, from green through yellow to red, and is full at 120 WPM (`WPM_FULL`). A white marker holds your peak for 1.5 s, then falls back. The centre glows faintly while you're idle.
 
 ### Game mode
 A single toggle for gaming, with no duplicate layers:
@@ -57,7 +61,7 @@ A single toggle for gaming, with no duplicate layers:
    wb32-dfu-updater_cli -t -s 0x08000000 -D firmware/leku_nut65_snaptap.bin
    wb32-dfu-updater_cli -R
    ```
-5. Flashing resets VIA's stored settings, so the keyboard boots into the layout compiled into the firmware. **That layout is mine** (see `nut65.layout.json`). Remap freely in VIA afterwards; load `via/NUT65_snaptap.json` under VIA's Design tab so the new keys show up as `SNAP`, `KITT-`, `KITT+` and `GAME`. If you restore a saved VIA layout, use `via/nut65.snaptap.layout.json`; an older layout file would overwrite the new keys.
+5. The first flash over the stock firmware resets VIA, so the keyboard boots into the layout compiled into the firmware. **That layout is mine** (see `nut65.layout.json`). After that, flashing this firmware again keeps your VIA layout and lighting: the build uses a fixed date, which VIA checks to decide whether its saved data is still valid. Hold **Fn + Right Shift + Backspace** for 3 s to go back to the compiled layout. Remap freely in VIA; load `via/NUT65_snaptap.json` under VIA's Design tab so the new keys show up as `SNAP`, `KITT-`, `KITT+` and `GAME`. If you restore a saved VIA layout, use `via/nut65.snaptap.layout.json`; an older layout file would overwrite the new keys.
 
 ## Building from source
 
@@ -99,7 +103,7 @@ Afterwards, `python tools/render_preview.py` re-renders the GIFs above from the 
 | `keymap/snaptap/` | Keymap source: Snap Tap, game mode, the KITT scanner and boot animation, speed keys and the layout |
 | `patches/` | Small board patch: lets the keymap draw over the board's light-bar modes, and adds read-only light-bar getters |
 | `via/` | VIA definition with the new keys, plus the matching layout |
-| `tools/` | Layout generator, GIF renderer, and a VIA probe that reads the live keymap |
+| `tools/` | Layout generator, GIF renderer, a VIA probe that reads the live keymap, and `wake_log.py` (reads the wake-debug log) |
 
 ### How it hooks in
 - The board already owns `process_record_user`, so the keymap uses `pre_process_record_user`.
@@ -107,6 +111,11 @@ Afterwards, `python tools/render_preview.py` re-renders the GIFs above from the 
 - The KITT variants slot into the stock Fn+Insert cycle between solid white and off. While a variant is showing, the board stays in its white mode underneath, so the brightness keys keep working.
 - Game mode is a flag, not a layer: in `pre_process_record_user`, Left Win switches the Fn layer on and off, and Right Alt sends Right Win.
 - Settings live in three bytes added to the end of the board's user EEPROM block.
+
+### Wake-from-sleep fix
+On 2.4 GHz, the first keypress after the keyboard had slept would sometimes register but only flash the lights, and a second press was needed to wake it fully. The cause is in the OEM wireless code, which has two 5-minute sleep timers: the low-power idle timeout and the wireless connection timeout. When the second one fired while the keyboard was already falling asleep, its sleep request was left pending and sent the keyboard straight back to sleep right after the next wake. `suspend_wakeup_init_user` now clears any leftover request on wake.
+
+It was found with a temporary event log, which is still here for debugging sleep issues. Apply `patches/debug-wake-logging.patch`, build with `make leku/nut65:snaptap WAKE_DEBUG=yes`, and read the log over USB with `python tools/wake_log.py --elf <build>.elf` (needs `hidapi`). The log is a 128-entry ring buffer in RAM. It records sleep and wake steps, wake sources, sleep requests and who made them, radio link changes, lighting state, and the key positions of the first few keypresses after each wake. The published firmware doesn't include it.
 
 ## Credits
 - Weikav / [hangshengkeji](https://github.com/hangshengkeji/qmk_firmware) for publishing the Nut65 QMK source.
