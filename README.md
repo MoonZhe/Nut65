@@ -45,7 +45,7 @@ Four key effects tie the keys to the light bar. They come at the end of the **Fn
 | Effect | What it does |
 | --- | --- |
 | **KITT Sweep** | The 2008 scanner across the keys, in step with the bar: same clock, speed and colour. |
-| **KITT 1982** | The 1982 scanner across the keys. Each key takes the lamp above it. |
+| **KITT 1982** | The 1982 scanner across the keys. Each key takes the lamp above it, in amber while the bar shows the amber 1982 scanner. |
 | **KITT Reactive** | Keys stay dark. Each keypress sends a soft streak along its row in the scanner's colour, and the effect speed sets how fast it travels. |
 | **Bar Echo** | Each key shows whatever the light bar shows above it: solid colour, KITT, the WPM meter, even music mode. |
 
@@ -65,8 +65,8 @@ The default after a factory reset is **Solid Reactive Simple** in red: keys stay
 
 | Build | Fn + Insert steps through |
 | --- | --- |
-| **Vial** and **VIA** | Rainbow flowing right, rainbow flowing left, rainbow flowing into the centre, colour-cycle breathing (8 colours), solid red, orange, yellow, green, cyan, blue, purple, white, **KITT 2008** red, amber, blue, green, purple, rainbow, **KITT 1982**, **typing-speed meter**, off |
-| **Personal** | Solid red, orange, yellow, green, cyan, blue, purple, white, **KITT 2008** red, amber, blue, green, purple, rainbow, **KITT 1982**, **typing-speed meter**, off |
+| **Vial** and **VIA** | Rainbow flowing right, rainbow flowing left, rainbow flowing into the centre, colour-cycle breathing (8 colours), solid red, orange, yellow, green, cyan, blue, purple, white, **KITT 2008** red, amber, blue, green, purple, rainbow, **KITT 1982** red, amber, **typing-speed meter**, off |
+| **Personal** | Solid red, orange, yellow, green, cyan, blue, purple, white, **KITT 2008** red, amber, blue, green, purple, rainbow, **KITT 1982** red, amber, **typing-speed meter**, off |
 
 **Fn + Delete** (music mode) hands the light bar to the board's built-in music-reactive light controller. Press it again for the controller's next pattern, and press Fn + Insert to come back to the cycle. Fn + PgUp / PgDn set the light-bar brightness. The KITT modes and the meter follow it.
 

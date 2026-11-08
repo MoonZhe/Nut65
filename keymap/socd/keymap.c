@@ -200,9 +200,10 @@ static bool     speed_flash_limit;
 static uint32_t speed_flash_timer = 0;
 
 // Light-bar modes that follow the KITT variants in the Fn+Insert cycle: the
-// 1982 KITT scanner, then the WPM meter. Like KITT they paint over the board's
-// white mode (11). Saved in the modes byte, so keep the values stable.
-enum { BAR_NONE = 0, BAR_WPM, BAR_KITT82, BAR_LAST = BAR_KITT82 };
+// 1982 KITT scanner in red, then in amber, then the WPM meter. Like KITT they
+// paint over the board's white mode (11). Saved in two bits of the modes byte,
+// so keep the values stable (3 is the last that fits).
+enum { BAR_NONE = 0, BAR_WPM, BAR_KITT82, BAR_KITT82_AMBER, BAR_LAST = BAR_KITT82_AMBER };
 static uint8_t bar_mode = BAR_NONE;
 static void    user_modes_save(void);
 
@@ -252,6 +253,10 @@ static bool kitt_process_rl_mod(void) {
         return false;
     }
     if (bar_mode == BAR_KITT82) {
+        bar_set(BAR_KITT82_AMBER);
+        return false;
+    }
+    if (bar_mode == BAR_KITT82_AMBER) {
         bar_set(BAR_WPM);
         return false;
     }
@@ -458,17 +463,27 @@ static uint8_t kitt82_led_level(uint8_t led) {
     return pos == 0 || pos == KITT_LEDS / K82_LAMPS - 1 ? level / 2 : level;
 }
 
+// Lamp colour at `level`: red, or the 2008 scanner's amber while the light bar
+// shows the amber 1982 variant (the key effect follows the bar).
+static RGB kitt82_color(uint8_t level) {
+    if (bar_mode == BAR_KITT82_AMBER) {
+        return kitt_color(kitt_hues[1], 0, level);
+    }
+    return (RGB){level, 0, 0};
+}
+
 static void kitt82_render(void) {
     kitt82_begin();
     const uint16_t peak = nut65_rl_brightness();
     for (uint8_t led = 0; led < KITT_LEDS; led++) {
-        rgb_matrix_set_color(KITT_LED_FIRST + led, (uint16_t)kitt82_led_level(led) * peak / 255, 0, 0);
+        const RGB c = kitt82_color((uint16_t)kitt82_led_level(led) * peak / 255);
+        rgb_matrix_set_color(KITT_LED_FIRST + led, c.r, c.g, c.b);
     }
 }
 
 // KITT 1982 key effect: the lamp above key position `x`. Call kitt82_begin() first.
 RGB kitt82_keys_color(uint8_t x, uint8_t brightness) {
-    return (RGB){(uint16_t)k82_level[bar_led_at(x) * K82_LAMPS / KITT_LEDS] * brightness / 255, 0, 0};
+    return kitt82_color((uint16_t)k82_level[bar_led_at(x) * K82_LAMPS / KITT_LEDS] * brightness / 255);
 }
 
 RGB bar_echo_color(uint8_t x, uint8_t brightness) {
@@ -783,7 +798,7 @@ bool rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max) {
     } else if (!nut65_rl_music()) {
         if (kitt_mode) {
             kitt_render(kitt_hues[kitt_mode - 1], kitt_speed_pct[kitt_speed], timer_elapsed32(kitt_timer));
-        } else if (bar_mode == BAR_KITT82) {
+        } else if (bar_mode == BAR_KITT82 || bar_mode == BAR_KITT82_AMBER) {
             kitt82_render();
         } else if (bar_mode == BAR_WPM) {
             wpm_render();

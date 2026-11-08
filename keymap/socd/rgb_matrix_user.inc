@@ -7,7 +7,7 @@
 //   KITT Reactive  keys stay dark; each press sends a soft streak along its
 //                  row in the scanner's colour.
 //   Bar Echo       each key shows what the light bar shows above it.
-//   KITT 1982      the original red scanner across the keys, in step with
+//   KITT 1982      the original scanner (red, or amber) across the keys, in step with
 //                  the light bar's 1982 mode.
 // This file replaces the board's rgb_matrix_user.inc, so include that first.
 
