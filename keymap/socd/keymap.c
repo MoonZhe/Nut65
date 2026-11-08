@@ -3,7 +3,7 @@
 //
 // SOCD keymap: the stock Nut65 keymap with the owner's VIA layout baked in
 // as the default, plus:
-//   - Fn+G: SOCD (last-input priority) on A/D. Logic follows
+//   - Fn+G: SOCD (last-input priority) on A/D and Left/Right. Logic follows
 //     Pascal Getreuer's SOCD Cleaner (SOCD_CLEANER_LAST),
 //     https://getreuer.info/posts/keyboards/socd-cleaner.
 //   - 2008-style KITT scanner on the light bar, in six colours, as part of
@@ -100,6 +100,8 @@ static void user_flags_save(void) {
 #define SOCD_FLASH_MS 1500
 #define LED_INDEX_A 34
 #define LED_INDEX_D 36
+#define LED_INDEX_LEFT  17
+#define LED_INDEX_RIGHT 19
 
 typedef struct {
     uint8_t keys[2]; // Opposing basic keycodes.
@@ -108,6 +110,7 @@ typedef struct {
 
 static socd_pair_t socd_pairs[] = {
     {.keys = {KC_A, KC_D}},
+    {.keys = {KC_LEFT, KC_RGHT}},
 };
 
 static uint32_t socd_flash_timer = 0;
@@ -807,13 +810,15 @@ bool rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max) {
             speed_flash_timer = 0;
         }
     }
-    // Flash A and D after a SOCD toggle: green = on, red = off.
+    // Flash A, D, Left and Right after a SOCD toggle: green = on, red = off.
     if (socd_flash_timer) {
         if (timer_elapsed32(socd_flash_timer) < SOCD_FLASH_MS) {
             uint8_t r = socd_enabled ? 0x00 : 0xFF;
             uint8_t g = socd_enabled ? 0xFF : 0x00;
             rgb_matrix_set_color(LED_INDEX_A, r, g, 0x00);
             rgb_matrix_set_color(LED_INDEX_D, r, g, 0x00);
+            rgb_matrix_set_color(LED_INDEX_LEFT, r, g, 0x00);
+            rgb_matrix_set_color(LED_INDEX_RIGHT, r, g, 0x00);
         } else {
             socd_flash_timer = 0;
         }

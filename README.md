@@ -1,6 +1,6 @@
 # KITT scanner + SOCD for the Weikav Nut65
 
-A custom QMK firmware for the **Weikav / LEKU Nut65** (65%, tri-mode). It turns the keyboard's front light bar into a **KITT scanner**, in both the 2008 KI3000 style and the original 1982 style, and can carry the scanner across the keys. It also adds **SOCD** (last-input priority on A/D) and a one-key **game mode** for gaming. It runs on **[Vial](https://get.vial.today/)**, so you can remap keys and set up tap dance, combos, key overrides and macros live, without reflashing. Wired, Bluetooth and 2.4 GHz all still work.
+A custom QMK firmware for the **Weikav / LEKU Nut65** (65%, tri-mode). It turns the keyboard's front light bar into a **KITT scanner**, in both the 2008 KI3000 style and the original 1982 style, and can carry the scanner across the keys. It also adds **SOCD** (last-input priority on A/D and the Left/Right arrows) and a one-key **game mode** for gaming. It runs on **[Vial](https://get.vial.today/)**, so you can remap keys and set up tap dance, combos, key overrides and macros live, without reflashing. Wired, Bluetooth and 2.4 GHz all still work.
 
 **[Download the latest release](https://github.com/MoonZhe/Nut65/releases/latest)**, then see [Flashing](#flashing).
 
@@ -78,7 +78,7 @@ The default after a factory reset is **Solid Reactive Simple** in red: keys stay
 | **Fn + \** | Cycles the key effects (see [Lighting](#lighting)). |
 | **Fn + ,** / **Fn + .** | KITT slower / faster (both scanners). The key blinks white for each step and red ×3 at the slowest or fastest speed. Remembered. |
 | **Fn + PgUp / PgDn** | Light-bar brightness. The scanners follow it. |
-| **Fn + G** | SOCD on A/D on or off. A and D flash green (on) or red (off). Remembered. |
+| **Fn + G** | SOCD on A/D and Left/Right on or off. A, D, Left and Right flash green (on) or red (off). Remembered. |
 | **Fn + Left Win** | Game mode on or off. Left Win acts as Fn, Right Alt acts as Win, SOCD turns on, and the Left Win key glows red. Exit with Right Fn + Left Win. Remembered. |
 | **Fn + D** (hold 3 s) | Debounce: 1 ms low latency (D blinks red) or 8 ms (D blinks white, the default). Remembered. |
 | **Fn + Right Shift + Esc** | Bootloader (DFU), for flashing. Settings are kept. |
