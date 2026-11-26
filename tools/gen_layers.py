@@ -36,6 +36,10 @@ OVERRIDES = {
     # Fn+RShift+Backspace, held 3 s: the board's factory reset. Wipes the VIA
     # layout back to this keymap, which matters now that flashing keeps it.
     (4, 0, 13): "EE_CLR",
+    # Mac base layer: Option on the Win key, Command on the Alt key (next to
+    # the spacebar, like a MacBook). The saved layout had MO(3) and Option there.
+    (2, 4, 1): "KC_LALT",
+    (2, 4, 2): "KC_LGUI",
 }
 
 
