@@ -551,7 +551,9 @@ static uint8_t game_fn_layer_for_base(void) {
 static bool game_mode_process(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
         case KC_LGUI:
-            if (record->event.pressed && game_mode) {
+            // Windows base only: in Mac mode KC_LGUI is Command (on the Alt
+            // key) and must stay Command.
+            if (record->event.pressed && game_mode && get_highest_layer(default_layer_state) == 0) {
                 game_fn_layer = game_fn_layer_for_base();
                 layer_on(game_fn_layer);
                 return false;
@@ -739,6 +741,10 @@ void keyboard_post_init_user(void) {
 #endif
 }
 
+// Board long-press handler in nut65.c (not static). Called directly so Fn+M
+// switches Windows/Mac on a tap instead of the board's 3 s hold.
+uint32_t wls_process_long_press(uint32_t trigger_time, void *cb_arg);
+
 // The board's nut65.c already owns process_record_user, so hook in one step
 // earlier. Runs before the board's RGB-record and Fn-row handling.
 bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
@@ -770,6 +776,13 @@ bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
         case GAME_TOG:
             if (record->event.pressed) {
                 game_mode_set(!game_mode);
+            }
+            return false;
+        case SYS_CUT:
+            // Swallow press and release so the board's 3 s timer never starts.
+            if (record->event.pressed) {
+                uint16_t kc = SYS_CUT;
+                wls_process_long_press(0, &kc);
             }
             return false;
         case RL_MOD:

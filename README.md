@@ -79,7 +79,8 @@ The default after a factory reset is **Solid Reactive Simple** in red: keys stay
 | **Fn + ,** / **Fn + .** | KITT slower / faster (both scanners). The key blinks white for each step and red ×3 at the slowest or fastest speed. Remembered. |
 | **Fn + PgUp / PgDn** | Light-bar brightness. The scanners follow it. |
 | **Fn + G** | SOCD on A/D and Left/Right on or off. A, D, Left and Right flash green (on) or red (off). Remembered. |
-| **Fn + Left Win** | Game mode on or off. Left Win acts as Fn, Right Alt acts as Win, SOCD turns on, and the Left Win key glows red. Exit with Right Fn + Left Win. Remembered. |
+| **Fn + Left Win** | Game mode on or off. Left Win acts as Fn, Right Alt acts as Win, SOCD turns on, and the Left Win key glows red. Exit with Right Fn + Left Win. In Mac mode the Left Win-as-Fn swap is skipped, so Command keeps working. Remembered. |
+| **Fn + M** | Windows / Mac mode (tap). Mac mode puts Command on the Alt key and Option on the Win key, like a MacBook. Blinks white (Mac) or blue (Windows). Remembered. |
 | **Fn + D** (hold 3 s) | Debounce: 1 ms low latency (D blinks red) or 8 ms (D blinks white, the default). Remembered. |
 | **Fn + Right Shift + Esc** | Bootloader (DFU), for flashing. Settings are kept. |
 | **Fn + Right Shift + Backspace** (hold 3 s) | Factory reset: back to the layout compiled into the firmware, and the default lighting (red Solid Reactive Simple keys, red KITT scanner). |
